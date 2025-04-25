@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-4 rounded p-4 bg-indigo-100" :id="`upsert-question-${index}`">
     <div class="w-full rounded-full bg-indigo-300 px-4 py-2 flex justify-between">
       <div>
-        No. <span>{{ index + 1 }}</span> {{ question.questionId }}
+        No. <span>{{ index + 1 }}</span>
       </div>
       <div class="flex items-center gap-2">
         <div
