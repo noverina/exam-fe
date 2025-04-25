@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-4 rounded p-4 bg-indigo-100" :id="`upsert-question-${index}`">
     <div class="w-full rounded-full bg-indigo-300 px-4 py-2 flex justify-between">
       <div>
-        No. <span>{{ index + 1 }}</span>
+        No. <span>{{ index + 1 }}</span> {{ question.questionId }}
       </div>
       <div class="flex items-center gap-2">
         <div
@@ -19,13 +19,22 @@
       <input
         id="text"
         :value="question.text"
+        :errors="errors"
         @input="onInput('text', $event)"
         type="text"
         class="border-b px-2 flex-1"
-        placeholder="type here..."
+        placeholder="Type here..."
         required
       />
     </div>
+    <Transition name="fade">
+      <div
+        v-if="errors.get('question-text-' + question.questionId)"
+        class="flex bg-red-300 rounded-full w-full px-4 py-2"
+      >
+        {{ errors.get('question-text-' + question.questionId) }}
+      </div>
+    </Transition>
     <div class="flex items-start gap-4">
       <div class="flex justify-between w-40 rounded-full bg-indigo-300 px-4 py-2">
         <div>Answer</div>
@@ -38,14 +47,34 @@
       </div>
 
       <div class="flex flex-col flex-1 gap-4">
-        <TransitionGroup name="fade" tag="div" class="flex flex-col gap-4 overflow-y-auto">
+        <Transition name="fade">
+          <div
+            v-if="createError.get('create-answer')"
+            class="flex bg-red-300 rounded-full w-full px-4 py-2"
+          >
+            {{ createError.get('create-answer') }}
+          </div>
+        </Transition>
+        <Transition name="fade">
+          <div v-if="errors.get('answers')" class="flex bg-red-300 rounded-full w-full px-4 py-2">
+            {{ errors.get('answers') }}
+          </div>
+        </Transition>
+        <TransitionGroup
+          v-if="question.answers.length > 0"
+          name="fade"
+          tag="div"
+          class="flex flex-col gap-4 overflow-y-auto"
+        >
           <UpsertAnswer
             v-for="(answer, index) in props.question.answers"
             :key="answer.answerId"
             :index="index"
             :answer="answer"
             :selected="selected"
+            :errors="errors"
             @update-answer="updateAnswer"
+            @delete-answer="deleteAnswer"
           ></UpsertAnswer>
         </TransitionGroup>
       </div>
@@ -53,9 +82,9 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import UpsertAnswer from '@/components/UpsertAnswer.vue'
-import type { Answer, Question } from '@/types/types'
+import type { FormQuestion } from '@/types/types'
 
 defineOptions({
   name: 'UpsertQuestion',
@@ -63,19 +92,21 @@ defineOptions({
 
 interface Props {
   index: number
-  question: Question
+  question: FormQuestion
+  errors: Map<string, string>
 }
 const props = defineProps<Props>()
 
 onMounted(() => {
-  createAnswer()
+  if (props.question.answers.length == 0) createAnswer()
 })
 
 const emit = defineEmits<{
   'update-question': [data: { id: number; field: string; value: string }]
   'delete-question': [questionId: number]
-  'create-answer': [data: { questionId: number; answer: Answer }]
-  'update-answer': [data: { questionIndex: number; index: number; field: string; value: string }]
+  'create-answer': [questionId: number]
+  'update-answer': [data: { questionId: number; answerId: number; field: string; value: string }]
+  'delete-answer': [data: { questionId: number; answerId: number }]
 }>()
 
 const onInput = (field: string, event: Event) => {
@@ -87,28 +118,44 @@ const deleteQuestion = (questionId: number) => {
   emit('delete-question', questionId)
 }
 
+const maxAnswer = Number(import.meta.env.VITE_MAX_ANSWER)
+const createError = ref(new Map<string, string>())
+let errorTimeout = 0
 const createAnswer = () => {
-  const answer: Answer = {
-    answerId: props.index + Math.floor(Date.now() / 1000) + 1,
-    text: '',
-    isCorrect: false,
+  createError.value.clear()
+  if (props.question.answers.length < maxAnswer) {
+    emit('create-answer', props.question.questionId)
+  } else {
+    createError.value.set('create-answer', 'Max answers (' + maxAnswer + ') reached')
+    clearTimeout(errorTimeout)
+    errorTimeout = setTimeout(() => {
+      createError.value.delete('create-answer')
+    }, 2000)
   }
-  emit('create-answer', { questionId: props.question.questionId, answer: answer })
 }
 
 const selected = ref<'A' | 'B' | 'C' | 'D' | 'E' | null>(null)
-const updateAnswer = (data: { index: number; field: string; value: string }) => {
+const updateAnswer = (data: { id: number; field: string; value: string }) => {
   if (data.field == 'isCorrect') {
     selected.value = data.value as 'A' | 'B' | 'C' | 'D' | 'E' | null
   }
 
   emit('update-answer', {
-    questionIndex: props.question.questionId,
-    index: data.index,
+    questionId: props.question.questionId,
+    answerId: data.id,
     field: data.field,
     value: data.value,
   })
 }
+
+const deleteAnswer = (id: number) => {
+  createError.value.clear()
+  emit('delete-answer', { questionId: props.question.questionId, answerId: id })
+}
+
+onUnmounted(() => {
+  clearTimeout(errorTimeout)
+})
 </script>
 
 <style scoped>

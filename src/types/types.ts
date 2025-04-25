@@ -37,9 +37,36 @@ export interface Answer {
 
 export interface FormExam {
   examId: number
-  type: ExamType
+  courseTeacherId: number
+  type: string
   startDate: string
   endDate: string
-  questions: Question[]
-  new: boolean
+  passingGrade: number
+  questions: FormQuestion[]
+  isNew: boolean
+  formDelete: FormDelete[]
+}
+
+export interface FormQuestion {
+  questionId: number
+  text: string
+  answers: FormAnswer[]
+  isNew: boolean
+}
+
+export interface FormAnswer {
+  answerId: number
+  text: string
+  isCorrect: boolean
+  isNew: boolean
+}
+
+export interface FormDelete {
+  id: number
+  type: 'QUESTION' | 'ANSWER'
+}
+
+export interface FormError {
+  field: string
+  message: string
 }

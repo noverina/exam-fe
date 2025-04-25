@@ -15,7 +15,7 @@
         <div
           v-if="role == 'TEACHER'"
           class="material-symbols-outlined cursor-pointer"
-          @click="toUpsertView"
+          @click="toUpsertView(courseTeacherId)"
         >
           add
         </div>
@@ -52,7 +52,7 @@
             :submit-date="exam.submitDate"
           />
         </div>
-        <div v-else class="text-gray-400 px-4 py-2">No data found</div>
+        <div v-else class="px-4 py-2 m-2 border text-gray-400">No data found</div>
       </div>
     </Transition>
   </div>
@@ -80,8 +80,19 @@ const props = defineProps<Props>()
 
 const router = useRouter()
 
-const toUpsertView = () => {
-  router.push({ name: 'UpsertView' })
+const toUpsertView = (courseTeacherId: number, examId?: number) => {
+  if (examId) {
+    router.push({
+      name: 'UpsertView',
+      params: { courseTeacherId: courseTeacherId },
+      query: { examId: examId },
+    })
+  } else {
+    router.push({
+      name: 'UpsertView',
+      params: { courseTeacherId: courseTeacherId },
+    })
+  }
 }
 
 const emit = defineEmits(['update:expanded'])

@@ -11,7 +11,6 @@ export function provideExamState() {
 
 export function useExamState(): Ref<number[]> {
   const answeredQuestions = inject<Ref<number[]>>(examStateSymbol)
-  console.log(answeredQuestions)
   if (!answeredQuestions) {
     throw new Error('useExamState must be used within a provider.')
   }

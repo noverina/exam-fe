@@ -1,5 +1,5 @@
 <template>
-  <main class="cursor-auto">
+  <main class="cursor-auto text-sm text-gray-800">
     <div v-if="questions.length > 0">
       <ExamSheet :questions="questions" :exam-id="+examId"></ExamSheet>
       <ExamQuestion

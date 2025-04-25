@@ -1,5 +1,12 @@
 <template>
-  <div class="m-2 p-2 border" :class="typeClass">
+  <div
+    class="m-2 p-2 border"
+    :class="{
+      'bg-green-200': role == 'STUDENT' && isPassed && examStatus == 'FINISH',
+      'bg-red-200': role == 'STUDENT' && !isPassed && examStatus == 'FINISH',
+      'cursor-pointer': role == 'STUDENT',
+    }"
+  >
     <div class="flex justify-between items-center" @click="role == 'STUDENT' && toExamView(examId)">
       <div>{{ typeText }}</div>
 
@@ -14,7 +21,7 @@
           <span
             v-if="examStatus == 'UPCOMING' && role == 'TEACHER'"
             class="material-symbols-outlined small-icon cursor-pointer"
-            @click="toUpsertView(examId)"
+            @click="toUpsertView(courseTeacherId, examId)"
             >edit</span
           >
           <span
@@ -59,8 +66,19 @@ const toExamView = (id: number) => {
   router.push({ name: 'ExamView', params: { id } })
 }
 
-const toUpsertView = (id: number) => {
-  router.push({ name: 'UpsertView', query: { id } })
+const toUpsertView = (courseTeacherId: number, examId?: number) => {
+  if (examId) {
+    router.push({
+      name: 'UpsertView',
+      params: { courseTeacherId: courseTeacherId },
+      query: { examId: examId },
+    })
+  } else {
+    router.push({
+      name: 'UpsertView',
+      params: { courseTeacherId: courseTeacherId },
+    })
+  }
 }
 
 const authStore = useAuthStore()
@@ -74,6 +92,7 @@ const endDate = computed(() => new Date(props.endDate))
 const examStatus = ref<'ONGOING' | 'FINISH' | 'UPCOMING'>('ONGOING')
 const typeText = computed(() => ExamType[props.type as unknown as keyof typeof ExamType])
 const examIcon = ref<string>()
+
 const now = new Date()
 if (now > startDate.value && now < endDate.value) {
   examStatus.value = 'ONGOING'
@@ -85,11 +104,6 @@ if (now > startDate.value && now < endDate.value) {
   examStatus.value = 'FINISH'
   examIcon.value = 'timer_off'
 }
-
-const typeClass = computed(() => {
-  if (role == 'TEACHER' || !hasTaken.value) return ''
-  return isPassed.value ? 'bg-green-300' : 'bg-red-300'
-})
 
 const timeLeft = ref<string>('')
 let timer: number

@@ -1,31 +1,35 @@
 <template>
-  <main class="cursor-auto text-gray-900">
-    <div v-if="data.length > 0">
-      <div class="flex justify-end">
-        <button
-          @click="toggleAll"
-          class="px-8 py-2 m-4 rounded-full cursor-pointer bg-indigo-200 shadow"
-        >
-          {{ anyExpanded ? 'Collapse All' : 'Expand All' }}
-        </button>
-      </div>
-
-      <div class="flex flex-wrap items-start gap-4 p-2">
-        <CardItem
-          v-for="(course, index) in data"
-          :key="index"
-          :course="course.name"
-          :teacher="course.teacherName"
-          :course-teacher-id="course.courseTeacherId"
-          :exams="course.exams"
-          :is-expanded="anyComponentsExpanded[index]"
-          @update:expanded="updateComponentExpandedArr(index, $event)"
-          class="w-full sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)]"
-        />
-      </div>
+  <main class="cursor-auto text-gray-800 text-sm">
+    <div v-if="loading">
+      <LoadingSpinner />
     </div>
+    <div v-else>
+      <div v-if="data.length > 0">
+        <div class="flex justify-end">
+          <button
+            @click="toggleAll"
+            class="px-8 py-2 m-4 rounded-full cursor-pointer bg-indigo-200 shadow"
+          >
+            {{ anyExpanded ? 'Collapse All' : 'Expand All' }}
+          </button>
+        </div>
 
-    <div v-else class="p-4 m-4 border text-gray-400">No data found</div>
+        <div class="flex flex-wrap items-start gap-4 p-2">
+          <CardItem
+            v-for="(course, index) in data"
+            :key="index"
+            :course="course.name"
+            :teacher="course.teacherName"
+            :course-teacher-id="course.courseTeacherId"
+            :exams="course.exams"
+            :is-expanded="anyComponentsExpanded[index]"
+            @update:expanded="updateComponentExpandedArr(index, $event)"
+            class="w-full sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)]"
+          />
+        </div>
+      </div>
+      <div v-else class="p-4 m-4 border text-gray-400">No data found</div>
+    </div>
   </main>
 </template>
 
@@ -35,9 +39,11 @@ import type { Course, Exam, HttpResponse } from '@/types/types.ts'
 import { fetchCourses } from '@/utils/API/course.ts'
 import { handleError } from '@/utils/format.ts'
 import CardItem from '@/components/CardItem.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const res = ref<HttpResponse<Course[] | string>>({ isError: false, message: '', data: [] })
 const data = ref<Course[]>([])
+const loading = ref(true)
 
 const examOrder: Record<string, number> = {
   QUIZ: 1,
@@ -50,6 +56,7 @@ const sortExams = (exams: Exam[]): Exam[] => {
 }
 
 onMounted(async () => {
+  loading.value = true
   try {
     res.value = await fetchCourses()
     if (res.value != null) {
@@ -66,6 +73,8 @@ onMounted(async () => {
     } else {
       handleError("Thrown error isn't an error: " + err)
     }
+  } finally {
+    loading.value = false
   }
 })
 
