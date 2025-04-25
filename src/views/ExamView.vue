@@ -14,7 +14,7 @@
       >
       </ExamQuestion>
     </div>
-    <div v-else class="text-gray-400">No data found</div>
+    <div v-else class="p-4 m-4 border text-gray-400">No data found</div>
   </main>
 </template>
 <script setup lang="ts">
