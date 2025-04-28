@@ -1,9 +1,9 @@
 <template>
   <div>
     <div class="flex gap-4 py-2 items-center">
-      <label for="text w-5" class="">{{ indexChar }}</label>
+      <label for="radio w-5" class="">{{ indexChar }}</label>
       <input
-        id="text"
+        id="radio"
         :value="answer.text"
         type="text"
         class="border-b px-2 flex-1"

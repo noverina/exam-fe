@@ -213,8 +213,17 @@ const form = reactive<FormExam>({
 })
 
 onMounted(() => {
-  if (examId != null || examId != undefined) prefill(Number(examId))
-  if (form.questions.length == 0) createQuestion()
+  try {
+    if (typeof courseTeacherId != 'string') throw new Error('CourseTeacherId is undefined')
+    if (examId != null || examId != undefined) prefill(+examId)
+    if (form.questions.length == 0) createQuestion()
+  } catch (err) {
+    if (err instanceof Error) {
+      handleError('Initialization failed: ' + err.message)
+    } else {
+      handleError("Thrown error isn't an error: " + err)
+    }
+  }
 })
 
 const prefill = async (examId: number) => {
@@ -316,8 +325,8 @@ const validate = (data: FormExam): Map<string, string> => {
 }
 
 const normalize = () => {
-  form.courseTeacherId = Number(courseTeacherId)
-  if (!form.isNew) form.examId = Number(examId)
+  form.courseTeacherId = +courseTeacherId
+  if (!form.isNew) form.examId = +examId!
   form.startDate = new Date(form.startDate).toISOString()
   form.endDate = new Date(form.endDate).toISOString()
   // this is because the generated temp id can exceed int range (the data type for id in backen)
@@ -463,6 +472,7 @@ const dateInputFormat = (date: Date) => {
   transform: translateY(0);
 }
 
+/* below is date picker styling */
 :deep(.dp__theme_light) {
   --dp-text-color: #2d3748; /* gray-800 */
   --dp-menu-border-color: #9ca3af; /* gray-400 */

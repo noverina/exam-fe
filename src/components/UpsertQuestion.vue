@@ -118,7 +118,7 @@ const deleteQuestion = (questionId: number) => {
   emit('delete-question', questionId)
 }
 
-const maxAnswer = Number(import.meta.env.VITE_MAX_ANSWER)
+const maxAnswer = +import.meta.env.VITE_MAX_ANSWER
 const createError = ref(new Map<string, string>())
 let errorTimeout = 0
 const createAnswer = () => {
