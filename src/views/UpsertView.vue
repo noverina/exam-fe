@@ -194,12 +194,12 @@ import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import { handleError } from '@/utils/format.ts'
 import { generateRandomNumber } from '@/utils/number.ts'
-import { fetchUpdateData } from '@/utils/API/exam.ts'
+import { fetchUpdateData, submitFormExam } from '@/utils/API/exam.ts'
 
 const route = useRoute()
 const examId = route.query.examId
 const courseTeacherId = route.params.courseTeacherId
-const loading = ref(true)
+const loading = ref(false)
 const form = reactive<FormExam>({
   examId: 0,
   courseTeacherId: 0,
@@ -256,14 +256,16 @@ const onSubmit = async () => {
   if (errors.value.size == 0) {
     try {
       normalize()
-      //await submitFormExam(normalizedData)
       console.log(form)
+      await submitFormExam(form)
     } catch (err) {
       if (err instanceof Error) {
         handleError('Error submiting: ' + err.message)
       } else {
         handleError("Thrown error isn't an error: " + err)
       }
+    } finally {
+      window.location.reload()
     }
   }
 }
