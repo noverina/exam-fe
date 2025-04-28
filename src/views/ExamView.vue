@@ -1,16 +1,20 @@
 <template>
   <main class="cursor-auto text-sm text-gray-800">
     <div v-if="questions.length > 0">
-      <ExamSheet :questions="questions" :exam-id="+examId"></ExamSheet>
+      <ExamSheet
+        :questions="questions"
+        :answered-questions="answeredQuestions"
+        :exam-id="+examId"
+      ></ExamSheet>
       <ExamQuestion
         v-for="(question, index) in questions"
-        :key="index"
-        :id="'question-' + question.questionId"
+        :key="question.questionId"
         :index="index"
         :text="question.text"
         :question-id="question.questionId"
         :answers="question.answers"
         class="scroll-mt-14"
+        @answer-question="answerQuestion"
       >
       </ExamQuestion>
     </div>
@@ -18,7 +22,7 @@
   </main>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, provide } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { fetchQuestions } from '../utils/API/exam.ts'
 import { handleError } from '../utils/format.ts'
@@ -50,6 +54,9 @@ onMounted(async () => {
   }
 })
 
-const answeredQuestions = ref<Record<number, boolean>>({})
-provide('answeredQuestions', answeredQuestions)
+const answeredQuestions = ref<number[]>([])
+
+const answerQuestion = (id: number) => {
+  answeredQuestions.value.push(id)
+}
 </script>

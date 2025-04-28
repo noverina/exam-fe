@@ -17,23 +17,28 @@
               v-for="(question, index) in questions"
               :key="question.questionId"
               class="cursor-pointer"
-              :class="answeredQuestions[question.questionId] ? 'bg-green-400' : 'bg-red-400'"
+              :class="
+                answeredQuestions.find((questionId) => question.questionId == questionId)
+                  ? 'bg-green-300'
+                  : 'bg-red-300'
+              "
               @click.prevent="scrollToQuestion(question.questionId)"
             >
               {{ index + 1 }}
             </button>
           </div>
-          <ExamSheetSave :exam-id="examId"></ExamSheetSave>
+          <div class="flex gap-2 p-2 text-sm justify-between font-semibold">
+            <button class="rounded-full py-2 px-4 cursor-pointer bg-indigo-200">save</button>
+            <button class="rounded-full py-2 px-4 cursor-pointer bg-indigo-200">submit</button>
+          </div>
         </div>
       </Transition>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { ref, inject } from 'vue'
-import type { Ref } from 'vue'
+import { ref } from 'vue'
 import type { Question } from '@/types/types.ts'
-import ExamSheetSave from '@/components/ExamSheetSave.vue'
 
 defineOptions({
   name: 'ExamSheet',
@@ -42,6 +47,7 @@ defineOptions({
 interface Props {
   examId: number
   questions: Question[]
+  answeredQuestions: number[]
 }
 defineProps<Props>()
 
@@ -57,8 +63,6 @@ const isContentVisible = ref(false)
 function toggleContent() {
   isContentVisible.value = !isContentVisible.value
 }
-
-const answeredQuestions = inject('answeredQuestions') as Ref<Record<number, boolean>>
 
 function enter(e: Element) {
   const element = e as HTMLElement

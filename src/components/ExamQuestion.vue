@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col border m-4 p-4 gap-2">
     <span class="font-semibold">{{ index + 1 }}. {{ text }}</span>
-    <AnswerComponent
+    <ExamAnswer
       v-for="answer in answers"
       :key="answer.answerId"
       :answer-id="answer.answerId"
@@ -9,19 +9,18 @@
       :is-correct="answer.isCorrect"
       :model-value="selectedAnswer"
       @update:model-value="handleAnswerSelection($event)"
-      :class="['odd:bg-white', 'even:bg-gray-200']"
-    ></AnswerComponent>
+      :class="['odd:bg-white', 'even:bg-indigo-100']"
+    ></ExamAnswer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, inject } from 'vue'
-import AnswerComponent from '@/components/ExamAnswer.vue'
+import { ref } from 'vue'
+import ExamAnswer from '@/components/ExamAnswer.vue'
 import type { Answer } from '@/types/types.ts'
-import type { Ref } from 'vue'
 
 defineOptions({
-  name: 'QuestionItem',
+  name: 'ExamQuestion',
 })
 
 interface Props {
@@ -33,12 +32,10 @@ interface Props {
 const props = defineProps<Props>()
 
 const selectedAnswer = ref<number | null>(null)
-const answeredQuestions = inject('answeredQuestions') as Ref<Record<number, boolean>>
+const emit = defineEmits<{ 'answer-question': [id: number] }>()
 
 function handleAnswerSelection(answerId: number) {
   selectedAnswer.value = answerId
-  if (!answeredQuestions.value.hasOwnProperty(props.questionId)) {
-    answeredQuestions.value[props.questionId] = true
-  }
+  emit('answer-question', props.questionId)
 }
 </script>

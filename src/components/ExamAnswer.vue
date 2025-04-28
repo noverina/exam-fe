@@ -2,12 +2,12 @@
   <div class="flex gap-2 p-2 text-sm">
     <input
       type="radio"
-      :id="`answer-${answerId}`"
+      id="radio"
       :value="answerId"
       :checked="modelValue === answerId"
       @change="$emit('update:model-value', answerId)"
     />
-    <label :for="`answer-${answerId}`">{{ text }}</label>
+    <label for="radio">{{ text }}</label>
   </div>
 </template>
 <script setup lang="ts">
