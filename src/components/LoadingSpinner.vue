@@ -1,4 +1,3 @@
-<!-- LoadingSpinner.vue -->
 <template>
   <div
     class="flex flex-col gap-4 fixed inset-0 bg-white z-51 flex flex-col gap-4 items-center justify-center"

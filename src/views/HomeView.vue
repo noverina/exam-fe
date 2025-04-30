@@ -8,7 +8,7 @@
         <div class="flex justify-end">
           <button
             @click="toggleAll"
-            class="px-8 py-2 m-4 rounded-full cursor-pointer bg-indigo-200 shadow"
+            class="px-8 py-2 m-4 rounded-full cursor-pointer bg-indigo-200 shadow font-semibold"
           >
             {{ anyExpanded ? 'Collapse All' : 'Expand All' }}
           </button>
@@ -23,7 +23,7 @@
             :course-teacher-id="course.courseTeacherId"
             :exams="course.exams"
             :is-expanded="anyComponentsExpanded[index]"
-            @update:expanded="updateComponentExpandedArr(index, $event)"
+            @update-expanded="updateComponentExpandedArr(index, $event)"
             class="w-full sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)]"
           />
         </div>
@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import type { Course, Exam, HttpResponse } from '@/types/types.ts'
+import type { Course, CourseExam, HttpResponse } from '@/types/types.ts'
 import { fetchCourses } from '@/utils/API/course.ts'
 import { handleError } from '@/utils/format.ts'
 import CardItem from '@/components/CardItem.vue'
@@ -51,7 +51,7 @@ const examOrder: Record<string, number> = {
   FINAL: 3,
 }
 
-const sortExams = (exams: Exam[]): Exam[] => {
+const sortExams = (exams: CourseExam[]): CourseExam[] => {
   return exams.sort((a, b) => examOrder[a.type] - examOrder[b.type])
 }
 

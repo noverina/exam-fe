@@ -21,11 +21,12 @@
               : 'text-red-600'
           "
         >
-          <div>
+          <div title="mark as correct">
             {{ selected == indexChar || (!answer.isNew && answer.isCorrect) ? 'check' : 'close' }}
           </div>
         </div>
         <div
+          title="delete"
           @click="onDelete"
           class="p-1 cursor-pointer material-symbols-outlined cursor-pointer rounded-full bg-white text-red-600 small-icon w-5 h-5"
         >
@@ -44,16 +45,12 @@
   </div>
 </template>
 <script setup lang="ts">
-import type { FormAnswer } from '@/types/types'
+import type { FormUpsertAnswer } from '@/types/formTypes'
 import { computed } from 'vue'
-
-defineOptions({
-  name: 'UpsertAnswer',
-})
 
 interface Props {
   index: number
-  answer: FormAnswer
+  answer: FormUpsertAnswer
   selected: 'A' | 'B' | 'C' | 'D' | 'E' | null
   errors: Map<string, string>
 }
@@ -87,7 +84,6 @@ const indexChar = computed(
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
 }
 .fade-enter-active,
 .fade-leave-active {
@@ -96,6 +92,5 @@ const indexChar = computed(
 .fade-enter-to,
 .fade-leave-from {
   opacity: 1;
-  transform: translateY(0);
 }
 </style>

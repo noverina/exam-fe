@@ -39,6 +39,7 @@
       <div class="flex justify-between w-40 rounded-full bg-indigo-300 px-4 py-2">
         <div>Answer</div>
         <div
+          title="create"
           @click="createAnswer"
           class="text-indigo-800 bg-white rounded-full w-6 h-6 material-symbols-outlined cursor-pointer"
         >
@@ -84,15 +85,11 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import UpsertAnswer from '@/components/UpsertAnswer.vue'
-import type { FormQuestion } from '@/types/types'
-
-defineOptions({
-  name: 'UpsertQuestion',
-})
+import type { FormUpsertQuestion } from '@/types/formTypes'
 
 interface Props {
   index: number
-  question: FormQuestion
+  question: FormUpsertQuestion
   errors: Map<string, string>
 }
 const props = defineProps<Props>()
@@ -162,7 +159,6 @@ onUnmounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
 }
 .fade-enter-active,
 .fade-leave-active {
@@ -171,6 +167,5 @@ onUnmounted(() => {
 .fade-enter-to,
 .fade-leave-from {
   opacity: 1;
-  transform: translateY(0);
 }
 </style>

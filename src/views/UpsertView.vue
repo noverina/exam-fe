@@ -91,6 +91,7 @@
               <div>Add new questions</div>
             </div>
             <div
+              title="create"
               @click="createQuestion"
               class="text-indigo-800 bg-white rounded-full w-6 h-6 material-symbols-outlined cursor-pointer"
             >
@@ -134,10 +135,10 @@
             </div>
           </Transition>
           <div class="flex bg-indigo-200 rounded-full w-full px-4 py-2 justify-between">
-            <div>Submit</div>
+            <div class="font-semibold">Submit</div>
             <button
               class="text-indigo-800 bg-white rounded-full w-6 h-6 material-symbols-outlined cursor-pointer"
-              title="go"
+              title="submit"
               @click="onSubmit"
             >
               arrow_right
@@ -186,7 +187,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { useRoute } from 'vue-router'
-import type { FormAnswer, FormExam } from '@/types/types.ts'
+import type { FormUpsertAnswer, FormUpsertExam } from '@/types/formTypes.ts'
 import { ExamType } from '../types/enums.ts'
 import UpsertQuestion from '@/components/UpsertQuestion.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
@@ -194,13 +195,13 @@ import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import { handleError } from '@/utils/format.ts'
 import { generateRandomNumber } from '@/utils/number.ts'
-import { fetchUpdateData, submitFormExam } from '@/utils/API/exam.ts'
+import { fetchUpdateData, upsertExam } from '@/utils/API/exam.ts'
 
 const route = useRoute()
 const examId = route.query.examId
 const courseTeacherId = route.params.courseTeacherId
 const loading = ref(false)
-const form = reactive<FormExam>({
+const form = reactive<FormUpsertExam>({
   examId: 0,
   courseTeacherId: 0,
   type: 'QUIZ',
@@ -215,7 +216,6 @@ const form = reactive<FormExam>({
 onMounted(() => {
   try {
     if (typeof courseTeacherId != 'string') throw new Error('CourseTeacherId is undefined')
-    if (examId != null || examId != undefined) prefill(+examId)
     if (form.questions.length == 0) createQuestion()
   } catch (err) {
     if (err instanceof Error) {
@@ -224,6 +224,7 @@ onMounted(() => {
       handleError("Thrown error isn't an error: " + err)
     }
   }
+  if (examId != null || examId != undefined) prefill(+examId)
 })
 
 const prefill = async (examId: number) => {
@@ -231,7 +232,7 @@ const prefill = async (examId: number) => {
     loading.value = true
     const res = await fetchUpdateData(examId)
     if (res != null) {
-      const data = res.data as unknown as FormExam
+      const data = res.data as unknown as FormUpsertExam
       form.examId = data.examId
       form.courseTeacherId = data.courseTeacherId
       form.type = data.type
@@ -266,7 +267,7 @@ const onSubmit = async () => {
     try {
       normalize()
       console.log(form)
-      await submitFormExam(form)
+      await upsertExam(form)
     } catch (err) {
       if (err instanceof Error) {
         handleError('Error submiting: ' + err.message)
@@ -274,14 +275,14 @@ const onSubmit = async () => {
         handleError("Thrown error isn't an error: " + err)
       }
     } finally {
-      window.location.reload()
+      //reload later
     }
   }
 }
 
 const errors = ref(new Map<string, string>())
 const instantErrors = ref(new Map<string, string>())
-const validate = (data: FormExam): Map<string, string> => {
+const validate = (data: FormUpsertExam): Map<string, string> => {
   errors.value.clear()
   const output = new Map<string, string>()
   const startDateValid = data.startDate != ''
@@ -339,7 +340,7 @@ const normalize = () => {
 }
 
 //TODO change this later
-const maxQuestion = 3 //Number(import.meta.env.VITE_MAX_QUESTION)
+const maxQuestion = +import.meta.env.VITE_MAX_QUESTION
 const createQuestion = () => {
   instantErrors.value.clear()
 
@@ -376,11 +377,11 @@ const deleteQuestion = (questionId: number) => {
   }
 }
 
-const maxAnswer = Number(import.meta.env.VITE_MAX_ANSWER)
+const maxAnswer = +import.meta.env.VITE_MAX_ANSWER
 const createAnswer = (questionId: number) => {
   const index = form.questions.findIndex((q) => q.questionId == questionId)
   if (form.questions[index] && form.questions[index].answers.length < maxAnswer) {
-    const answer: FormAnswer = {
+    const answer: FormUpsertAnswer = {
       answerId: generateRandomNumber(questionId),
       text: '',
       isCorrect: false,
@@ -460,7 +461,6 @@ const dateInputFormat = (date: Date) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
 }
 .fade-enter-active,
 .fade-leave-active {
@@ -469,7 +469,6 @@ const dateInputFormat = (date: Date) => {
 .fade-enter-to,
 .fade-leave-from {
   opacity: 1;
-  transform: translateY(0);
 }
 
 /* below is date picker styling */

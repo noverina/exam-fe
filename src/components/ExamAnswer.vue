@@ -3,25 +3,25 @@
     <input
       type="radio"
       id="radio"
-      :value="answerId"
-      :checked="modelValue === answerId"
-      @change="$emit('update:model-value', answerId)"
+      :value="answer.answerId"
+      :checked="answerValue === answer.answerId"
+      @change="onClick"
     />
-    <label for="radio">{{ text }}</label>
+    <label for="radio">{{ answer.text }}</label> {{ answer.answerId }}
   </div>
 </template>
 <script setup lang="ts">
-defineOptions({
-  name: 'ExamAnswer',
-})
+import type { Answer } from '@/types/types'
 
 interface Props {
-  answerId: number
-  text: string
-  isCorrect: boolean
-  modelValue: number | null
+  answer: Answer
+  answerValue: number | null
 }
-defineProps<Props>()
+const props = defineProps<Props>()
 
-defineEmits(['update:model-value'])
+const emit = defineEmits<{ 'select-answer': [id: number] }>()
+
+const onClick = () => {
+  emit('select-answer', props.answer.answerId)
+}
 </script>

@@ -10,10 +10,10 @@ export interface Course {
   courseTeacherId: number
   name: string
   teacherName: string
-  exams: Exam[]
+  exams: CourseExam[]
 }
 
-export interface Exam {
+export interface CourseExam {
   examId: number
   type: ExamType
   grade: number
@@ -23,8 +23,18 @@ export interface Exam {
   submitDate: string
 }
 
+export interface ExamDetail {
+  studentExamId: number
+  examId: number
+  examType: ExamType
+  courseName: string
+  endDate: string
+  questions: Question[]
+}
+
 export interface Question {
   questionId: number
+  selectedAnswerId: number
   text: string
   answers: Answer[]
 }
@@ -33,40 +43,4 @@ export interface Answer {
   answerId: number
   text: string
   isCorrect: boolean
-}
-
-export interface FormExam {
-  examId: number
-  courseTeacherId: number
-  type: string
-  startDate: string
-  endDate: string
-  passingGrade: number
-  questions: FormQuestion[]
-  isNew: boolean
-  formDelete: FormDelete[]
-}
-
-export interface FormQuestion {
-  questionId: number
-  text: string
-  answers: FormAnswer[]
-  isNew: boolean
-}
-
-export interface FormAnswer {
-  answerId: number
-  text: string
-  isCorrect: boolean
-  isNew: boolean
-}
-
-export interface FormDelete {
-  id: number
-  type: 'QUESTION' | 'ANSWER'
-}
-
-export interface FormError {
-  field: string
-  message: string
 }

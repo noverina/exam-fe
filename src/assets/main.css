@@ -5,6 +5,10 @@ body {
   font-family: 'Poppins', sans-serif;
 }
 
+.base-icon {
+  font-size: 1rem;
+}
+
 .small-icon {
   font-size: 0.75rem;
 }

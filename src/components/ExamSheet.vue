@@ -1,35 +1,38 @@
 <template>
-  <div
-    class="fixed top-14 right-0 rounded bg-white opacity-50 hover:opacity-100 m-2 p-1 border transition-opacity duration-300"
-  >
-    <div class="flex flex-col items-end gap-2">
+  <div class="h-[calc(100vh-3rem)] sticky top-12 px-2 py-4">
+    <div class="flex h-full gap-2">
       <button
-        class="material-symbols-outlined small-icon cursor-pointer align-middle"
-        :class="{ 'rounded-full border': isContentVisible }"
-        @click="toggleContent"
+        class="material-symbols-outlined hover:bg-indigo-100 cursor-pointer"
+        @click="isContentVisible = !isContentVisible"
       >
-        {{ isContentVisible ? 'close' : 'more_horiz' }}
+        {{ isContentVisible ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}
       </button>
-      <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
-        <div v-if="isContentVisible">
-          <div class="flex flex-col text-sm">
+      <Transition name="slide">
+        <div v-if="isContentVisible" class="flex flex-col gap-4 justify-between">
+          <div class="grid grid-cols-3 gap-1">
             <button
               v-for="(question, index) in questions"
               :key="question.questionId"
-              class="cursor-pointer"
-              :class="
-                answeredQuestions.find((questionId) => question.questionId == questionId)
-                  ? 'bg-green-300'
-                  : 'bg-red-300'
-              "
-              @click.prevent="scrollToQuestion(question.questionId)"
+              class="cursor-pointer w-8 h-8"
+              :class="answeredQuestions.get(question.questionId) ? 'bg-green-300' : 'bg-red-300'"
+              @click="scrollToQuestion(question.questionId)"
             >
               {{ index + 1 }}
             </button>
           </div>
-          <div class="flex gap-2 p-2 text-sm justify-between font-semibold">
-            <button class="rounded-full py-2 px-4 cursor-pointer bg-indigo-200">save</button>
-            <button class="rounded-full py-2 px-4 cursor-pointer bg-indigo-200">submit</button>
+          <div class="flex flex-col gap-2 text-sm font-semibold">
+            <button
+              class="rounded-sm py-2 px-4 cursor-pointer bg-indigo-200"
+              @click="emit('on-save')"
+            >
+              save
+            </button>
+            <button
+              class="rounded-sm py-2 px-4 cursor-pointer bg-indigo-200"
+              @click="emit('on-submit')"
+            >
+              submit
+            </button>
           </div>
         </div>
       </Transition>
@@ -40,16 +43,16 @@
 import { ref } from 'vue'
 import type { Question } from '@/types/types.ts'
 
-defineOptions({
-  name: 'ExamSheet',
-})
-
 interface Props {
-  examId: number
   questions: Question[]
-  answeredQuestions: number[]
+  answeredQuestions: Map<number, number>
 }
 defineProps<Props>()
+
+const emit = defineEmits<{
+  'on-save': []
+  'on-submit': []
+}>()
 
 const scrollToQuestion = (questionId: number) => {
   const element = document.getElementById(`question-${questionId}`)
@@ -59,34 +62,21 @@ const scrollToQuestion = (questionId: number) => {
 }
 
 const isContentVisible = ref(false)
-
-function toggleContent() {
-  isContentVisible.value = !isContentVisible.value
-}
-
-function enter(e: Element) {
-  const element = e as HTMLElement
-  element.style.maxHeight = '0'
-  element.style.overflow = 'hidden'
-  requestAnimationFrame(() => {
-    element.style.transition = 'max-height 0.2s ease-in-out'
-    element.style.maxHeight = `${element.scrollHeight}px`
-  })
-}
-
-function afterEnter(e: Element) {
-  const element = e as HTMLElement
-  element.style.maxHeight = ''
-  element.style.overflow = ''
-}
-
-function leave(e: Element) {
-  const element = e as HTMLElement
-  element.style.maxHeight = `${element.scrollHeight}px`
-  element.style.overflow = 'hidden'
-  requestAnimationFrame(() => {
-    element.style.transition = 'max-height 0.2s ease-in-out'
-    element.style.maxHeight = '0'
-  })
-}
 </script>
+
+<style scoped>
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.2s ease;
+}
+.slide-enter-to,
+.slide-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+</style>

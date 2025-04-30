@@ -60,21 +60,17 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import type { Exam } from '@/types/types.ts'
+import type { CourseExam } from '@/types/types.ts'
 import CardExam from '@/components/CardExam.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
-
-defineOptions({
-  name: 'CardItem',
-})
 
 interface Props {
   course: string
   teacher: string
   courseTeacherId: number
   isExpanded: boolean
-  exams: Exam[]
+  exams: CourseExam[]
 }
 const props = defineProps<Props>()
 
@@ -95,13 +91,13 @@ const toUpsertView = (courseTeacherId: number, examId?: number) => {
   }
 }
 
-const emit = defineEmits(['update:expanded'])
+const emit = defineEmits(['update-expanded'])
 
 const isContentVisible = ref(props.isExpanded)
 
 function toggleContent() {
   isContentVisible.value = !isContentVisible.value
-  emit('update:expanded', isContentVisible.value)
+  emit('update-expanded', isContentVisible.value)
 }
 
 watch(

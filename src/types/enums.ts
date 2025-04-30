@@ -8,9 +8,3 @@ export enum ExamType {
   MID = 'Mid exam',
   FINAL = 'Final exam',
 }
-
-export enum ExamTypeReverse {
-  'Quiz' = 'QUIZ',
-  'Mid exam' = 'MID',
-  'Final exam' = 'FINAL',
-}
