@@ -14,11 +14,11 @@
       <div class="flex gap-2">
         <div
           @click="onSelect(indexChar)"
-          class="p-1 cursor-pointer material-symbols-outlined cursor-pointer rounded-full transition-colors duration-300 bg-white small-icon w-5 h-5"
+          class="p-1 cursor-pointer material-symbols-outlined cursor-pointer rounded-full transition-colors duration-300 bg-white small-icon w-5 h-5 border transition-colors duration-300"
           :class="
             selected == indexChar || (!answer.isNew && answer.isCorrect)
-              ? 'text-green-600'
-              : 'text-red-600'
+              ? 'text-green-600 border-green-800 hover:text-green-900 hover:border-green-900 hover:bg-green-100'
+              : 'text-red-600 border-red-800 hover:text-red-900 hover:border-red-900 hover:bg-red-100'
           "
         >
           <div title="mark as correct">
@@ -37,7 +37,7 @@
     <Transition name="fade">
       <div
         v-if="errors.get('answer-text-' + answer.answerId)"
-        class="flex bg-red-300 rounded-full w-full px-4 py-2"
+        class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
       >
         {{ errors.get('answer-text-' + answer.answerId) }}
       </div>
@@ -57,17 +57,17 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'update-answer': [data: { id: number; field: string; value: string }]
-  'delete-answer': [id: number]
+  'update-answer': [data: { answerId: string; field: string; value: string }]
+  'delete-answer': [answerId: string]
 }>()
 
 const onInput = (field: string, event: Event) => {
   const target = event.target as HTMLInputElement
-  emit('update-answer', { id: props.answer.answerId, field: field, value: target.value })
+  emit('update-answer', { answerId: props.answer.answerId, field: field, value: target.value })
 }
 
 const onSelect = (choice: 'A' | 'B' | 'C' | 'D' | 'E') => {
-  emit('update-answer', { id: props.answer.answerId, field: 'isCorrect', value: choice })
+  emit('update-answer', { answerId: props.answer.answerId, field: 'isCorrect', value: choice })
 }
 
 const onDelete = () => {

@@ -1,34 +1,51 @@
 <template>
   <div
-    class="m-2 p-2 border"
+    class="m-2 p-2 border border-gray-400 rounded-md"
     :class="{
       'bg-green-200': role == 'STUDENT' && isPassed && examStatus == 'FINISH',
       'bg-red-200': role == 'STUDENT' && !isPassed && examStatus == 'FINISH',
       'cursor-pointer': role == 'STUDENT',
     }"
   >
-    <div class="flex justify-between items-center" @click="role == 'STUDENT' && toExamView(examId)">
+    <div
+      class="flex justify-between items-center"
+      @click="role == 'STUDENT' && toExamView(exam.examId)"
+    >
       <div>{{ typeText }}</div>
 
       <div class="flex flex-col gap-2">
         <div class="flex gap-2 justify-end items-center">
+          <!-- teacher role -->
           <span
-            v-if="examStatus != 'UPCOMING' && role == 'STUDENT'"
-            class="text-xs"
-            :class="{ 'material-symbols-outlined small-icon': grade == null }"
-            >{{ grade != null ? grade : hasSubmitted ? 'check' : 'close' }}</span
-          >
+            v-if="examStatus == 'FINISH' && role == 'TEACHER' && !exam.isGraded"
+            class="material-symbols-outlined small-icon cursor-pointer"
+            @click="emit('grade')"
+            >task_alt
+          </span>
+          <span
+            v-if="examStatus == 'FINISH' && role == 'TEACHER' && exam.isGraded"
+            class="material-symbols-outlined small-icon cursor-pointer"
+            @click="toUpsertView()"
+            >menu
+          </span>
           <span
             v-if="examStatus == 'UPCOMING' && role == 'TEACHER'"
             class="material-symbols-outlined small-icon cursor-pointer"
-            @click="toUpsertView(courseTeacherId, examId)"
-            >edit</span
-          >
+            @click="toUpsertView()"
+            >edit
+          </span>
+          <!-- student role -->
+          <span
+            v-if="examStatus != 'UPCOMING' && role == 'STUDENT'"
+            class="text-xs"
+            :class="{ 'material-symbols-outlined small-icon': exam.grade == null }"
+            >{{ exam.grade != null ? exam.grade : hasSubmitted ? 'check' : 'close' }}
+          </span>
           <span
             class="material-symbols-outlined small-icon"
             :class="{ spin: examStatus == 'ONGOING' }"
-            >{{ examIcon }}</span
-          >
+            >{{ examIcon }}
+          </span>
         </div>
         <span v-if="examStatus == 'UPCOMING'" class="text-xs">{{
           startDate.toLocaleString()
@@ -44,36 +61,31 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ExamType } from '@/types/enums'
+import type { CourseExam } from '@/types/types'
 
 interface Props {
-  examId: number
-  courseTeacherId: number
-  type: ExamType
-  grade: number | null
-  passingGrade: number
-  startDate: string
-  endDate: string
-  submitDate: string | null
+  exam: CourseExam
+  courseTeacherId: string
 }
 const props = defineProps<Props>()
 
 const router = useRouter()
 
-const toExamView = (id: number) => {
+const toExamView = (id: string) => {
   router.push({ name: 'ExamView', params: { id } })
 }
 
-const toUpsertView = (courseTeacherId: number, examId?: number) => {
-  if (examId) {
+const toUpsertView = () => {
+  if (props.exam.examId) {
     router.push({
       name: 'UpsertView',
-      params: { courseTeacherId: courseTeacherId },
-      query: { examId: examId },
+      params: { courseTeacherId: props.courseTeacherId },
+      query: { examId: props.exam.examId },
     })
   } else {
     router.push({
       name: 'UpsertView',
-      params: { courseTeacherId: courseTeacherId },
+      params: { courseTeacherId: props.courseTeacherId },
     })
   }
 }
@@ -81,14 +93,16 @@ const toUpsertView = (courseTeacherId: number, examId?: number) => {
 const authStore = useAuthStore()
 const role = authStore.role
 
-const hasTaken = computed(() => props.grade !== null)
-const hasSubmitted = computed(() => props.submitDate !== null)
-const isPassed = computed(() => hasTaken.value && props.grade! > props.passingGrade)
-const startDate = computed(() => new Date(props.startDate))
-const endDate = computed(() => new Date(props.endDate))
+const hasTaken = computed(() => props.exam.grade !== null)
+const hasSubmitted = computed(() => props.exam.submitDate !== null)
+const isPassed = computed(() => hasTaken.value && props.exam.grade! > props.exam.passingGrade)
+const startDate = computed(() => new Date(props.exam.startDate))
+const endDate = computed(() => new Date(props.exam.endDate))
 const examStatus = ref<'ONGOING' | 'FINISH' | 'UPCOMING'>('ONGOING')
-const typeText = computed(() => ExamType[props.type as unknown as keyof typeof ExamType])
+const typeText = computed(() => ExamType[props.exam.type as unknown as keyof typeof ExamType])
 const examIcon = ref<string>()
+
+const emit = defineEmits(['grade'])
 
 const now = new Date()
 if (now > startDate.value && now < endDate.value) {
@@ -106,7 +120,7 @@ const timeLeft = ref<string>('')
 let timer: number
 
 const updateCountdown = (): void => {
-  const parsedEnd = computed(() => new Date(props.endDate))
+  const parsedEnd = computed(() => new Date(props.exam.endDate))
   const difference = parsedEnd.value.getTime() - new Date().getTime()
 
   if (difference > 0) {

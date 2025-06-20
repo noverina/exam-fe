@@ -9,7 +9,10 @@
         class="bg-white rounded-md flex flex-col shadow-xl min-w-1/4 max-w-5/12 cursor-default"
         @click.stop
       >
-        <div class="flex justify-between gap-10 py-4 bg-indigo-200 items-center rounded-t-md">
+        <div
+          v-if="isHeader"
+          class="flex justify-between gap-10 py-4 bg-indigo-200 items-center rounded-t-md"
+        >
           <div class="flex px-4 gap-2 justify-center items-center">
             <div class="flex">
               <div class="material-symbols-outlined base-icon">{{ headerIcon }}</div>
@@ -31,6 +34,7 @@ import { ref } from 'vue'
 interface Props {
   headerIcon: string
   headerText: string
+  isHeader: boolean
 }
 
 defineProps<Props>()

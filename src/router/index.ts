@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import ExamView from '../views/ExamView.vue'
 import UpsertView from '@/views/UpsertView.vue'
 import TestView from '@/views/TestView.vue'
+import LoginView from '@/views/LoginView.vue'
+import GradeView from '@/views/GradeView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,6 +28,16 @@ const router = createRouter({
       path: '/test',
       name: 'TestView',
       component: TestView,
+    },
+    {
+      path: '/auth',
+      name: 'LoginView',
+      component: LoginView,
+    },
+    {
+      path: '/grade',
+      name: 'GradeView',
+      component: GradeView,
     },
   ],
 })

@@ -1,12 +1,15 @@
 <template>
-  <div class="flex flex-col gap-4 rounded p-4 bg-indigo-100" :id="`upsert-question-${index}`">
-    <div class="w-full rounded-full bg-indigo-300 px-4 py-2 flex justify-between">
+  <div
+    class="flex flex-col gap-4 rounded-md p-4 border border-gray-400 bg-white"
+    :id="`upsert-question-${index}`"
+  >
+    <div class="w-full border-b border-gray-400 px-4 py-2 flex justify-between">
       <div>
         No. <span>{{ index + 1 }}</span>
       </div>
       <div class="flex items-center gap-2">
         <div
-          class="flex rounded-full px-4 bg-white text-red-600 items-center gap-1 cursor-pointer"
+          class="flex rounded-full px-4 bg-white text-red-600 border border-red-800 items-center gap-1 cursor-pointer transition-colors duration-300 hover:text-red-800 hover:bg-red-100 hover:border-red-900"
           @click="deleteQuestion(question.questionId)"
         >
           <div>Delete</div>
@@ -15,7 +18,7 @@
       </div>
     </div>
     <div class="flex items-center gap-4">
-      <label for="text" class="w-40 rounded-full bg-indigo-300 px-4 py-2">Question</label>
+      <label for="text" class="w-40 rounded-full border border-gray-400 px-4 py-2">Question</label>
       <input
         id="text"
         :value="question.text"
@@ -30,20 +33,21 @@
     <Transition name="fade">
       <div
         v-if="errors.get('question-text-' + question.questionId)"
-        class="flex bg-red-300 rounded-full w-full px-4 py-2"
+        class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
       >
         {{ errors.get('question-text-' + question.questionId) }}
       </div>
     </Transition>
     <div class="flex items-start gap-4">
-      <div class="flex justify-between w-40 rounded-full bg-indigo-300 px-4 py-2">
+      <div class="flex justify-between w-40 rounded-full border border-gray-400 px-4 py-2">
         <div>Answer</div>
-        <div
-          title="create"
-          @click="createAnswer"
-          class="text-indigo-800 bg-white rounded-full w-6 h-6 material-symbols-outlined cursor-pointer"
-        >
-          add
+        <div class="flex justify-center items-center" @click="createAnswer">
+          <div
+            title="create new answer"
+            class="p-1 rounded-full material-symbols-outlined cursor-pointer border border-gray-500 small-icon hover:text-black hover:border-gray-800 hover:bg-gray-100 transition-colors duration-300"
+          >
+            add
+          </div>
         </div>
       </div>
 
@@ -51,13 +55,16 @@
         <Transition name="fade">
           <div
             v-if="createError.get('create-answer')"
-            class="flex bg-red-300 rounded-full w-full px-4 py-2"
+            class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
           >
             {{ createError.get('create-answer') }}
           </div>
         </Transition>
         <Transition name="fade">
-          <div v-if="errors.get('answers')" class="flex bg-red-300 rounded-full w-full px-4 py-2">
+          <div
+            v-if="errors.get('answers')"
+            class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
+          >
             {{ errors.get('answers') }}
           </div>
         </Transition>
@@ -99,24 +106,25 @@ onMounted(() => {
 })
 
 const emit = defineEmits<{
-  'update-question': [data: { id: number; field: string; value: string }]
-  'delete-question': [questionId: number]
-  'create-answer': [questionId: number]
-  'update-answer': [data: { questionId: number; answerId: number; field: string; value: string }]
-  'delete-answer': [data: { questionId: number; answerId: number }]
+  'update-question': [data: { questionId: string; field: string; value: string }]
+  'delete-question': [questionId: string]
+  'create-answer': [questionId: string]
+  'update-answer': [data: { questionId: string; answerId: string; field: string; value: string }]
+  'delete-answer': [data: { questionId: string; answerId: string }]
 }>()
 
 const onInput = (field: string, event: Event) => {
   const target = event.target as HTMLInputElement
-  emit('update-question', { id: props.question.questionId, field, value: target.value })
+  emit('update-question', { questionId: props.question.questionId, field, value: target.value })
 }
 
-const deleteQuestion = (questionId: number) => {
+const deleteQuestion = (questionId: string) => {
   emit('delete-question', questionId)
 }
 
 const maxAnswer = +import.meta.env.VITE_MAX_ANSWER
 const createError = ref(new Map<string, string>())
+const envErrorTimeout = +import.meta.env.VITE_VALIDATION_ERROR_TIMEOUT
 let errorTimeout = 0
 const createAnswer = () => {
   createError.value.clear()
@@ -127,27 +135,27 @@ const createAnswer = () => {
     clearTimeout(errorTimeout)
     errorTimeout = setTimeout(() => {
       createError.value.delete('create-answer')
-    }, 2000)
+    }, envErrorTimeout)
   }
 }
 
 const selected = ref<'A' | 'B' | 'C' | 'D' | 'E' | null>(null)
-const updateAnswer = (data: { id: number; field: string; value: string }) => {
+const updateAnswer = (data: { answerId: string; field: string; value: string }) => {
   if (data.field == 'isCorrect') {
     selected.value = data.value as 'A' | 'B' | 'C' | 'D' | 'E' | null
   }
 
   emit('update-answer', {
     questionId: props.question.questionId,
-    answerId: data.id,
+    answerId: data.answerId,
     field: data.field,
     value: data.value,
   })
 }
 
-const deleteAnswer = (id: number) => {
+const deleteAnswer = (answerId: string) => {
   createError.value.clear()
-  emit('delete-answer', { questionId: props.question.questionId, answerId: id })
+  emit('delete-answer', { questionId: props.question.questionId, answerId: answerId })
 }
 
 onUnmounted(() => {

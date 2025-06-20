@@ -1,5 +1,5 @@
 <template>
-  <ModalBase ref="modal" :header-icon="'warning'" :header-text="'Are you sure you want to submit?'">
+  <ModalBase ref="modal" :header-icon="'warning'" :header-text="'Are you sure?'" :is-header="true">
     <div class="flex flex-col justify-center gap-2 w-full">
       <div class="text-center">
         {{ text }}

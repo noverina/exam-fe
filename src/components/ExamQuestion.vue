@@ -6,8 +6,8 @@
       :key="answer.answerId"
       :answer="answer"
       :answer-value="selectedAnswer"
+      :can-change-answer="canChangeAnswer"
       @select-answer="selectAnswer"
-      :class="['odd:bg-white', 'even:bg-indigo-100']"
     ></ExamAnswer>
   </div>
 </template>
@@ -20,19 +20,20 @@ import type { Question } from '@/types/types.ts'
 interface Props {
   index: number
   question: Question
+  canChangeAnswer: boolean
 }
 const props = defineProps<Props>()
 
+const selectedAnswer = ref<string | null>(null)
 onMounted(() => {
   if (props.question.selectedAnswerId) selectedAnswer.value = props.question.selectedAnswerId
 })
 
-const selectedAnswer = ref<number | null>(null)
 const emit = defineEmits<{
-  'answer-question': [data: { questionId: number; answerId: number }]
+  'answer-question': [data: { questionId: string; answerId: string }]
 }>()
 
-function selectAnswer(answerId: number) {
+function selectAnswer(answerId: string) {
   selectedAnswer.value = answerId
   emit('answer-question', { questionId: props.question.questionId, answerId: answerId })
 }

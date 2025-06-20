@@ -7,40 +7,47 @@ export interface HttpResponse<T> {
 }
 
 export interface Course {
-  courseTeacherId: number
-  name: string
+  courseTeacherId: string
+  courseName: string
   teacherName: string
   exams: CourseExam[]
 }
 
 export interface CourseExam {
-  examId: number
+  examId: string
   type: ExamType
   grade: number
   passingGrade: number
   startDate: string
   endDate: string
   submitDate: string
+  isGraded: boolean
 }
 
 export interface ExamDetail {
-  studentExamId: number
-  examId: number
+  isFinal: boolean
+  examId: string
   examType: ExamType
   courseName: string
   endDate: string
+  grade: number
   questions: Question[]
 }
 
 export interface Question {
-  questionId: number
-  selectedAnswerId: number
+  questionId: string
+  selectedAnswerId: string
   text: string
   answers: Answer[]
 }
 
 export interface Answer {
-  answerId: number
+  answerId: string
   text: string
   isCorrect: boolean
+}
+
+export interface ErrorInfo {
+  code: string
+  message: string
 }

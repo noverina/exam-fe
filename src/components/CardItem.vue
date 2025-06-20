@@ -1,28 +1,28 @@
 <template>
-  <div class="bg-white text-sm rounded-t border">
+  <div class="bg-white text-sm rounded-t border border-gray-400">
     <div
       class="flex justify-between items-end w-full gap-4 px-4 py-3 rounded-t"
       :class="{
         'bg-red-200': isOngoingAndNotSubmitted && role == 'STUDENT',
-        'border-b': isContentVisible,
+        'border-b border-gray-600': isContentVisible,
       }"
     >
       <div>
-        <div class="font-semibold">{{ course }}</div>
-        <div>Teacher: {{ teacher }}</div>
+        <div class="font-semibold">{{ course.courseName }}</div>
+        <div>Teacher: {{ course.teacherName }}</div>
       </div>
       <div class="flex">
         <div
           v-if="role == 'TEACHER'"
           class="material-symbols-outlined cursor-pointer"
-          @click="toUpsertView(courseTeacherId)"
+          @click="toUpsertView()"
         >
           add
         </div>
         <div
           v-if="isOngoingAndNotSubmitted && role == 'STUDENT'"
           class="material-symbols-outlined text-red-600"
-          title="you have ongoing exam with unsubmitted answers"
+          title="There exist ongoing exam with unsubmitted answers"
         >
           exclamation
         </div>
@@ -38,21 +38,16 @@
 
     <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
       <div v-if="isContentVisible">
-        <div v-if="exams.length > 0">
+        <div v-if="course.exams.length > 0">
           <CardExam
-            v-for="exam in exams"
+            v-for="exam in course.exams"
             :key="exam.examId"
-            :exam-id="exam.examId"
-            :course-teacher-id="courseTeacherId"
-            :type="exam.type"
-            :grade="exam.grade"
-            :passing-grade="exam.passingGrade"
-            :start-date="exam.startDate"
-            :end-date="exam.endDate"
-            :submit-date="exam.submitDate"
+            :exam="exam"
+            :course-teacher-id="course.courseTeacherId"
+            @grade="grade"
           />
         </div>
-        <div v-else class="px-4 py-2 m-2 border text-gray-400">No data found</div>
+        <div v-else class="px-4 py-2 m-2 border text-gray-400 rounded-md">No data found</div>
       </div>
     </Transition>
   </div>
@@ -60,44 +55,45 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import type { CourseExam } from '@/types/types.ts'
+import type { Course } from '@/types/types.ts'
 import CardExam from '@/components/CardExam.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
 interface Props {
-  course: string
-  teacher: string
-  courseTeacherId: number
+  course: Course
   isExpanded: boolean
-  exams: CourseExam[]
 }
 const props = defineProps<Props>()
 
 const router = useRouter()
 
-const toUpsertView = (courseTeacherId: number, examId?: number) => {
-  if (examId) {
-    router.push({
-      name: 'UpsertView',
-      params: { courseTeacherId: courseTeacherId },
-      query: { examId: examId },
-    })
-  } else {
-    router.push({
-      name: 'UpsertView',
-      params: { courseTeacherId: courseTeacherId },
-    })
-  }
+const toUpsertView = () => {
+  router.push({
+    name: 'UpsertView',
+    params: { courseTeacherId: props.course.courseTeacherId },
+  })
 }
 
-const emit = defineEmits(['update-expanded'])
+// const emit = defineEmits<{
+//   'update-expanded': [isContentVisible: boolean]
+//   grade: []
+// }>()
+
+const emit = defineEmits<{
+  'update-expanded': [isContentVisible: boolean]
+  grade: [examId: string]
+}>()
 
 const isContentVisible = ref(props.isExpanded)
 
-function toggleContent() {
+const toggleContent = () => {
   isContentVisible.value = !isContentVisible.value
   emit('update-expanded', isContentVisible.value)
+}
+
+const grade = (examId: string) => {
+  emit('grade', examId)
 }
 
 watch(
@@ -112,7 +108,7 @@ const role = authStore.role
 
 const isOngoingAndNotSubmitted = computed(() => {
   const now = new Date()
-  return props.exams.some((exam) => {
+  return props.course.exams.some((exam) => {
     const startDate = new Date(exam.startDate)
     const endDate = new Date(exam.endDate)
     return now > startDate && now < endDate && exam.submitDate === null

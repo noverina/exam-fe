@@ -9,6 +9,8 @@ authStore.setRole('TEACHER')
 </script>
 
 <template>
-  <StickyHeader></StickyHeader>
-  <RouterView />
+  <div class="min-h-screen bg-gray-100">
+    <StickyHeader v-if="authStore != null" />
+    <RouterView />
+  </div>
 </template>
