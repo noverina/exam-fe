@@ -2,55 +2,80 @@
   <div
     class="m-2 p-2 border border-gray-400 rounded-md"
     :class="{
-      'bg-green-200': role == 'STUDENT' && isPassed && examStatus == 'FINISH',
-      'bg-red-200': role == 'STUDENT' && !isPassed && examStatus == 'FINISH',
-      'cursor-pointer': role == 'STUDENT',
+      'border-green-400!': role == 'STUDENT' && isPassed && examStatus == 'FINISH',
+      'border-red-400!': role == 'STUDENT' && !isPassed && examStatus == 'FINISH',
+      'cursor-pointer': role == 'STUDENT' && examStatus == 'ONGOING',
     }"
   >
     <div
       class="flex justify-between items-center"
-      @click="role == 'STUDENT' && toExamView(exam.examId)"
+      @click="
+        role == 'STUDENT' && examStatus == 'ONGOING'
+          ? toExamView(exam.examId)
+          : examStatus == 'FINISH' && role == 'TEACHER' && exam.isGraded
+            ? toUpsertView()
+            : null
+      "
     >
       <div>{{ typeText }}</div>
 
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-1 items-end">
         <div class="flex gap-2 justify-end items-center">
-          <!-- teacher role -->
-          <span
-            v-if="examStatus == 'FINISH' && role == 'TEACHER' && !exam.isGraded"
-            class="material-symbols-outlined small-icon cursor-pointer"
-            @click="emit('grade')"
-            >task_alt
-          </span>
-          <span
-            v-if="examStatus == 'FINISH' && role == 'TEACHER' && exam.isGraded"
-            class="material-symbols-outlined small-icon cursor-pointer"
-            @click="toUpsertView()"
-            >menu
-          </span>
-          <span
-            v-if="examStatus == 'UPCOMING' && role == 'TEACHER'"
-            class="material-symbols-outlined small-icon cursor-pointer"
-            @click="toUpsertView()"
-            >edit
-          </span>
           <!-- student role -->
           <span
-            v-if="examStatus != 'UPCOMING' && role == 'STUDENT'"
-            class="text-xs"
-            :class="{ 'material-symbols-outlined small-icon': exam.grade == null }"
-            >{{ exam.grade != null ? exam.grade : hasSubmitted ? 'check' : 'close' }}
+            v-if="examStatus == 'ONGOING' && role == 'STUDENT'"
+            class="material-symbols-outlined small-icon text-red-500"
+            >exclamation
           </span>
+          <span
+            class="text-xs font-semibold px-2 rounded-sm text-white"
+            :class="{
+              'bg-red-400': examStatus == 'ONGOING',
+              'bg-green-400': examStatus == 'FINISH',
+              'bg-amber-400': examStatus == 'UPCOMING',
+            }"
+            >{{ examStatus }}</span
+          >
           <span
             class="material-symbols-outlined small-icon"
             :class="{ spin: examStatus == 'ONGOING' }"
             >{{ examIcon }}
           </span>
         </div>
-        <span v-if="examStatus == 'UPCOMING'" class="text-xs">{{
-          startDate.toLocaleString()
-        }}</span>
-        <span v-if="examStatus == 'ONGOING'" class="text-xs">{{ timeLeft }}</span>
+
+        <div>
+          <div v-if="examStatus == 'UPCOMING'" class="text-xs">
+            {{ startDate.toLocaleString() }}
+          </div>
+          <div v-if="examStatus == 'ONGOING'" class="text-xs">{{ timeLeft }}</div>
+          <div class="flex gap-4 justify-end" v-if="examStatus == 'FINISH' && role == 'STUDENT'">
+            <span class="text-xs">{{ exam.grade ? exam.grade : 0 }}</span>
+            <span
+              class="text-xs px-2 rounded-sm border"
+              :class="[isPassed ? 'border-green-400' : 'border-red-400']"
+              >{{ isPassed ? 'PASS' : 'FAIL' }}</span
+            >
+          </div>
+        </div>
+        <div class="w-auto flex flex-col">
+          <!-- teacher role -->
+          <div
+            class="cursor-pointer flex gap-2 items-center justify-end border border-gray-400 px-2 rounded-sm"
+            @click="emit('grade')"
+            v-if="examStatus == 'FINISH' && role == 'TEACHER' && !exam.isGraded"
+          >
+            <span class="font-semibold text-xs">GRADE</span>
+            <span class="material-symbols-outlined small-icon">task_alt </span>
+          </div>
+          <div
+            class="w-auto cursor-pointer flex px-2 gap-2 items-center justify-end border border-gray-400 rounded-sm"
+            @click="toUpsertView()"
+            v-if="examStatus == 'UPCOMING' && role == 'TEACHER'"
+          >
+            <span class="font-semibold text-xs">EDIT</span>
+            <span class="material-symbols-outlined small-icon">edit </span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -91,11 +116,10 @@ const toUpsertView = () => {
 }
 
 const authStore = useAuthStore()
-const role = authStore.role
+const role = authStore.user?.role
 
 const hasTaken = computed(() => props.exam.grade !== null)
-const hasSubmitted = computed(() => props.exam.submitDate !== null)
-const isPassed = computed(() => hasTaken.value && props.exam.grade! > props.exam.passingGrade)
+const isPassed = computed(() => hasTaken.value && props.exam.grade! >= props.exam.passingGrade)
 const startDate = computed(() => new Date(props.exam.startDate))
 const endDate = computed(() => new Date(props.exam.endDate))
 const examStatus = ref<'ONGOING' | 'FINISH' | 'UPCOMING'>('ONGOING')
@@ -152,7 +176,7 @@ onUnmounted(() => {
 }
 
 .spin {
-  animation: spinPause 2s infinite;
+  animation: spinPause 1.5s infinite;
 }
 
 @keyframes spinPause {

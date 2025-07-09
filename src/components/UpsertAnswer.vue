@@ -14,7 +14,7 @@
       <div class="flex gap-2">
         <div
           @click="onSelect(indexChar)"
-          class="p-1 cursor-pointer material-symbols-outlined cursor-pointer rounded-full transition-colors duration-300 bg-white small-icon w-5 h-5 border transition-colors duration-300"
+          class="p-1 cursor-pointer material-symbols-outlined cursor-pointer rounded-full bg-white small-icon w-5 h-5 border transition-colors duration-300"
           :class="
             selected == indexChar || (!answer.isNew && answer.isCorrect)
               ? 'text-green-600 border-green-800 hover:text-green-900 hover:border-green-900 hover:bg-green-100'

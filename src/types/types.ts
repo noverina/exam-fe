@@ -51,3 +51,32 @@ export interface ErrorInfo {
   code: string
   message: string
 }
+
+export interface Grade {
+  examId: string
+  examType: ExamType
+  courseName: string
+  passingGrade: number
+  passRate: number
+  passAmt: number
+  average: number
+  students: GradeDetail[]
+}
+
+export interface GradeDetail {
+  studentId: string
+  studentName: string
+  grade: number
+  isPass: boolean
+}
+
+export interface Auth {
+  email: string
+  password: string
+}
+
+export interface User {
+  id: string
+  role: string
+  name: string
+}

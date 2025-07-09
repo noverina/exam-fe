@@ -1,13 +1,13 @@
 <template>
   <main class="cursor-auto text-gray-800 text-sm">
-    <div v-if="loading">
+    <ModalConfirmation ref="confirmModal" @confirm-action="submit" :text="confirmText" />
+    <ModalSuccess ref="successModal" :on-close="onClose" />
+    <ModalError ref="errorModal" :text="errorText" :code="statusCode" />
+    <div v-show="loading">
       <LoadingSpinner />
     </div>
-    <div v-else>
-      <ModalConfirmation ref="confirmModal" @confirm-action="submit" :text="confirmText" />
-      <ModalSuccess ref="successModal" />
-      <ModalError ref="errorModal" :text="errorText" :code="statusCode" />
-      <form novalidate @submit.prevent class="flex z-10">
+    <div v-show="!loading">
+      <form novalidate @submit.prevent="onSubmit" class="flex z-10">
         <div
           class="flex gap-4 overflow-auto bg-white sticky top-12 left-0 h-[calc(100vh-3.5rem)]"
           :class="isSidebarVisible ? 'p-4' : 'px-3 py-4'"
@@ -176,8 +176,8 @@
                     </div>
                   </Transition>
                   <button
-                    class="font-semibold flex border border-orange-500 bg-amber-300 rounded-md px-4 py-2 justify-between cursor-pointer font-semibold items-center justify-center hover:bg-amber-400 hover:border-orange-700 hover:text-black transition-colors duration-300"
-                    @click="onSubmit"
+                    class="font-semibold flex border border-amber-400 bg-yellow-400 rounded-md px-4 py-2 justify-between cursor-pointer font-semibold items-center justify-center hover:bg-amber-400 hover:border-orange-600 hover:text-black transition-colors duration-300"
+                    type="submit"
                   >
                     submit
                   </button>
@@ -240,13 +240,15 @@ import { ExamType } from '../types/enums.ts'
 import UpsertQuestion from '@/components/UpsertQuestion.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import ModalConfirmation from '@/components/ModalConfirmation.vue'
-import VueDatePicker from '@vuepic/vue-datepicker'
-import '@vuepic/vue-datepicker/dist/main.css'
-import { logError } from '@/utils/error.ts'
-import { fetchUpsertData, upsert } from '@/utils/API/exam.ts'
-import { v7 as uuidv7 } from 'uuid'
 import ModalSuccess from '@/components/ModalSuccess.vue'
 import ModalError from '@/components/ModalError.vue'
+import VueDatePicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
+import { v6 as uuidv6 } from 'uuid'
+import { handleError } from '@/utils/error.ts'
+import router from '@/router/index.ts'
+import { useAuthStore } from '@/stores/auth.ts'
+import type { HttpResponse } from '@/types/types.ts'
 
 const route = useRoute()
 const examId = route.query.examId
@@ -267,13 +269,13 @@ const form = reactive<FormUpsertExam>({
 
 onMounted(() => {
   try {
+    const authStore = useAuthStore()
+    authStore.ensureToken()
     if (typeof courseTeacherId != 'string') throw new Error('Missing required URL query')
-    if (typeof examId == 'string') prefill(examId)
+    if (typeof examId == 'string') prefill()
     if (typeof examId != 'string' && form.questions.length == 0) createQuestion()
   } catch (err) {
-    if (err instanceof Error) {
-      logError(err)
-    }
+    if (err instanceof Error) handleError(err, errorModal, statusCode)
   }
 })
 
@@ -284,13 +286,16 @@ onUnmounted(() => {
 const confirmModal = ref<InstanceType<typeof ModalConfirmation> | null>(null)
 const successModal = ref<InstanceType<typeof ModalSuccess> | null>(null)
 const errorModal = ref<InstanceType<typeof ModalError> | null>(null)
-const confirmText = ref('')
+const confirmText = ref('Do you really want to submit this data?')
 const statusCode = ref('')
 const errorText = ref('')
-const prefill = async (examId: string) => {
+const prefill = async () => {
   try {
     loading.value = true
-    const res = await fetchUpsertData(examId)
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const res = (await (
+      await fetch(`exam/data?examId=${examId}&timezone=${timezone}`)
+    ).json()) as unknown as HttpResponse<UpsertPrefill[] | string>
     if (res != null) {
       const data = res.data as unknown as UpsertPrefill
       form.examId = data.examId
@@ -321,27 +326,13 @@ const prefill = async (examId: string) => {
       form.isNew = false
     }
   } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') {
-      errorModal.value?.open()
-      statusCode.value = 'E00: Request timeout'
-      errorText.value = 'Please try the request again'
-      logError(err)
-    } else if (err instanceof Error) {
-      errorModal.value?.open()
-      statusCode.value = 'E01: Fetch failed'
-      errorText.value = 'Unable to fetch data'
-      logError(err)
-    } else {
-      errorModal.value?.open()
-      statusCode.value = 'E00: Unknown error'
-      errorText.value = 'Please retry the request or refresh the page'
-    }
+    if (err instanceof Error) handleError(err, errorModal, statusCode)
   } finally {
     loading.value = false
   }
 }
 
-const onSubmit = async () => {
+const onSubmit = () => {
   const errorsResult = validate(form)
   errors.value = errorsResult
   if (errors.value.size == 0) {
@@ -351,16 +342,23 @@ const onSubmit = async () => {
 
 const submit = async () => {
   try {
+    loading.value = true
     normalize()
-    console.log(form)
-    await upsert(form)
+    const res = await fetch('exam', { method: 'POST', body: JSON.stringify(form) })
+    const data = (await res.json()) as unknown as HttpResponse<string | null>
+
+    if (data.isError) throw new Error(data.message)
+    else successModal.value?.open()
   } catch (err) {
-    if (err instanceof Error) {
-      logError(err)
-    }
+    if (err instanceof Error) handleError(err, errorModal, statusCode)
   } finally {
-    //reload later
+    loading.value = false
   }
+}
+
+const onClose = () => {
+  if (typeof examId == 'string') window.location.reload()
+  else router.push({ name: 'HomeView' })
 }
 
 const errors = ref(new Map<string, string>())
@@ -410,7 +408,7 @@ const validate = (data: FormUpsertExam): Map<string, string> => {
   return output
 }
 
-const normalize = () => {
+const normalize = async () => {
   form.courseTeacherId = String(courseTeacherId)
   if (!form.isNew) form.examId = String(examId)
   form.startDate = new Date(form.startDate).toISOString()
@@ -423,7 +421,7 @@ const createQuestion = () => {
 
   if (form.questions.length < maxQuestion) {
     form.questions.push({
-      questionId: uuidv7(),
+      questionId: uuidv6(),
       text: '',
       answers: [],
       isNew: true,
@@ -464,7 +462,7 @@ const createAnswer = (questionId: string) => {
   const index = form.questions.findIndex((q) => q.questionId == questionId)
   if (form.questions[index] && form.questions[index].answers.length < maxAnswer) {
     const answer: FormUpsertAnswer = {
-      answerId: uuidv7(),
+      answerId: uuidv6(),
       text: '',
       isCorrect: false,
       isNew: true,
@@ -534,7 +532,6 @@ const scrollToQuestion = () => {
     })
   } else {
     instantErrors.value.set('jump-input', 'Invalid question number')
-    console.log(envErrorTimeout)
     clearTimeout(errorTimeout)
     errorTimeout = setTimeout(() => {
       instantErrors.value.delete('jump-input')

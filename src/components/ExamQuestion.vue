@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col border m-4 p-4 gap-2">
+  <div class="flex flex-col border border-gray-400 m-4 p-4 gap-2 rounded-sm">
     <span class="font-semibold">{{ index + 1 }}. {{ question.text }}</span>
     <ExamAnswer
       v-for="answer in question.answers"

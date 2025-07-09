@@ -1,13 +1,14 @@
 <template>
   <main class="cursor-auto text-sm text-gray-800">
+    <ModalSuccess ref="successModal" :on-close="reload" />
     <ModalConfirmation ref="confirmModal" @confirm-action="submit" :text="confirmText" />
     <ModalError ref="errorModal" :text="errorText" :code="statusCode" />
-    <div v-if="isLoading">
+    <div v-show="loading">
       <LoadingSpinner />
     </div>
-    <div v-else>
+    <div v-show="!loading">
       <div
-        v-if="isSaving"
+        v-if="saving"
         class="fixed inset right-5 bottom-5 py-2 px-8 shadow border border-gray-200 bg-white rounded-full saving z-41 opacity-80"
       >
         saving
@@ -19,7 +20,7 @@
           >
             <div>{{ examData.courseName }} - {{ examData.examType }}</div>
             <div v-if="remainingTime.seconds > 0" class="flex gap-2 items-center">
-              <div>Time remaining:</div>
+              <div>Time remaining</div>
               <div :class="{ 'text-red-500': remainingTime.hours < 1 }">
                 {{ remainingTime.hours }} hours {{ remainingTime.minutes }} minutes
                 {{ remainingTime.seconds }} seconds
@@ -55,18 +56,20 @@
   </main>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { logError } from '../utils/error.ts'
-import type { ExamDetail } from '../types/types.ts'
+import type { ExamDetail, HttpResponse } from '../types/types.ts'
 import ExamQuestion from '../components/ExamQuestion.vue'
 import ExamSheet from '../components/ExamSheet.vue'
 import ModalConfirmation from '@/components/ModalConfirmation.vue'
 import ModalError from '@/components/ModalError.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import type { FormSubmitExam } from '@/types/formTypes.ts'
-import { fetchExamData, submitForm } from '@/utils/API/exam.ts'
 import { ExamType } from '@/types/enums.ts'
+import { pinia } from '@/pinia'
+import { useAuthStore } from '@/stores/auth.ts'
+import { handleError } from '@/utils/error.ts'
+import ModalSuccess from '@/components/ModalSuccess.vue'
 
 const route = useRoute()
 const examId = route.params.id
@@ -77,50 +80,41 @@ const form = ref<FormSubmitExam>({
   isFinal: false,
   choices: [],
 })
-const isLoading = ref(false)
+const loading = ref(false)
+const authStore = useAuthStore(pinia)
 
 let intervalId: number
-//TODO change it to get from authstore later
-const studentId = '0196eca2-1646-7856-84b4-982aa268444a'
+const studentId = authStore.user?.id
 const errorModal = ref<InstanceType<typeof ModalError> | null>(null)
 const errorText = ref('')
 const statusCode = ref('')
+
 onMounted(async () => {
-  if (typeof examId !== 'string') throw new Error('Exam id is undefined')
+  try {
+    authStore.ensureToken()
+    if (typeof examId !== 'string') throw new Error('Missing required URL query')
 
-  isLoading.value = true
+    loading.value = true
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const res = await fetch(
+      `exam/answer/data?examId=${examId}&studentId=${studentId}&timezone=${timezone}`,
+    )
+    const resJson = (await res.json()) as unknown as HttpResponse<ExamDetail>
+    const data = resJson.data
+    data.examType = ExamType[data.examType as unknown as keyof typeof ExamType]
+    examData.value = data
+    // populate the answered/unanswered indicator
+    for (const question of data.questions) {
+      answeredQuestions.value.set(question.questionId, question.selectedAnswerId)
+    }
 
-  await fetchExamData(examId, studentId)
-    .then((res) => {
-      const data = res.data as unknown as ExamDetail
-      data.examType = ExamType[data.examType as unknown as keyof typeof ExamType]
-      examData.value = data
-      // populate the answered/unanswered indicator
-      for (const question of data.questions) {
-        answeredQuestions.value.set(question.questionId, question.selectedAnswerId)
-      }
-
-      calculateTimeLeft()
-      intervalId = setInterval(calculateTimeLeft, 1000)
-    })
-    .catch((err) => {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        nextTick()
-        errorModal.value?.open()
-        statusCode.value = 'E01A'
-        logError(err)
-      }
-      if (err instanceof Error) {
-        nextTick()
-        errorModal.value?.open()
-        statusCode.value = 'E01'
-        logError(err)
-      } else {
-        nextTick()
-        errorModal.value?.open()
-      }
-    })
-    .finally(() => (isLoading.value = false))
+    calculateTimeLeft()
+    intervalId = setInterval(calculateTimeLeft, 1000)
+  } catch (err) {
+    if (err instanceof Error) handleError(err, errorModal, statusCode)
+  } finally {
+    loading.value = false
+  }
 })
 
 onUnmounted(() => {
@@ -132,35 +126,26 @@ const answerQuestion = (data: { questionId: string; answerId: string }) => {
   answeredQuestions.value.set(data.questionId, data.answerId)
 }
 
-const isSaving = ref(false)
+const saving = ref(false)
 const save = async () => {
   try {
-    isSaving.value = true
+    saving.value = true
     form.value.examId = String(examId)
-    form.value.studentId = studentId
+    form.value.studentId = studentId!
     form.value.isFinal = false
     form.value.choices = Array.from(answeredQuestions.value, ([key, value]) => ({
       questionId: key,
       answerId: value,
     }))
-    console.log(form.value)
-    const res = await submitForm(form.value)
+    const res = (await fetch('exam/answer', {
+      method: 'POST',
+      body: JSON.stringify(form.value),
+    })) as unknown as HttpResponse<string | null>
     if (res.isError) throw new Error(res.message)
   } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') {
-      errorModal.value?.open()
-      statusCode.value = 'E01A'
-      logError(err)
-    }
-    if (err instanceof Error) {
-      errorModal.value?.open()
-      statusCode.value = 'E01'
-      logError(err)
-    } else {
-      errorModal.value?.open()
-    }
+    if (err instanceof Error) handleError(err, errorModal, statusCode)
   } finally {
-    isSaving.value = false
+    saving.value = false
   }
 }
 
@@ -172,40 +157,39 @@ const onSubmit = () => {
     Array.from(answeredQuestions.value.values()).some((value) => value === null)
   ) {
     confirmText.value =
-      "You still have unanswered questions; you can't change your answers once you submit"
+      'You still have unanswered questions! Do you really want to finalize your answers?'
   } else {
-    confirmText.value = "You can't change your answers once you submit"
+    confirmText.value = 'Do you really want to finalize your answers?'
   }
   confirmModal.value?.open()
 }
 
+const successModal = ref<InstanceType<typeof ModalSuccess> | null>(null)
 const submit = async () => {
   try {
+    loading.value = true
     form.value.examId = String(examId)
-    form.value.studentId = studentId
+    form.value.studentId = studentId!
     form.value.isFinal = true
     form.value.choices = Array.from(answeredQuestions.value, ([key, value]) => ({
       questionId: key,
       answerId: value,
     }))
-    const res = await submitForm(form.value)
+    const res = (await fetch('exam/answer', {
+      method: 'POST',
+      body: JSON.stringify(form.value),
+    })) as unknown as HttpResponse<string | null>
     if (res.isError) throw new Error(res.message)
+    else successModal.value?.open()
   } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') {
-      errorModal.value?.open()
-      statusCode.value = 'E01A'
-      logError(err)
-    }
-    if (err instanceof Error) {
-      errorModal.value?.open()
-      statusCode.value = 'E01'
-      logError(err)
-    } else {
-      errorModal.value?.open()
-    }
+    if (err instanceof Error) handleError(err, errorModal, statusCode)
   } finally {
-    window.location.reload()
+    loading.value = false
   }
+}
+
+const reload = () => {
+  window.location.reload()
 }
 
 const remainingTime = ref({

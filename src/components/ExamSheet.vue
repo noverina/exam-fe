@@ -1,6 +1,6 @@
 <template>
   <div
-    class="h-[calc(100vh-3rem)] sticky top-12 bg-white"
+    class="h-[calc(100vh-3rem)] sticky top-12 bg-white z-52"
     :class="isContentVisible ? 'p-4' : 'px-3 py-4'"
   >
     <div class="flex h-full gap-2">
@@ -29,7 +29,7 @@
           </div>
           <div class="flex flex-col gap-2 text-sm">
             <button
-              class="rounded-sm py-2 px-4 cursor-pointer border border-gray-400 hover:border-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed transition-colors duration-300 disabled:border-red-400 disabled:hover:bg-red-100"
+              class="rounded-sm py-2 px-4 cursor-pointer border border-gray-400 hover:border-gray-700 disabled:cursor-not-allowed transition-colors duration-300 disabled:border-red-400 disabled:hover:bg-red-100"
               @click="emit('on-save')"
               :disabled="!canChangeAnswer"
               :title="canChangeAnswer ? '' : 'Submitted already, can\'t make changes'"
@@ -37,7 +37,7 @@
               save
             </button>
             <button
-              class="rounded-sm py-2 px-4 cursor-pointer bg-amber-300 border border-orange-500 font-semibold hover:border-orange-700 hover:bg-amber-400 disabled:cursor-not-allowed transition-colors duration-300 disabled:bg-red-300 disabled:border-red-400 disabled:hover:bg-rose-400 disabled:hover:border-rose-500"
+              class="rounded-sm py-2 px-4 cursor-pointer bg-amber-300 border border-orange-400 font-semibold hover:border-orange-600 hover:bg-amber-400 disabled:cursor-not-allowed transition-colors duration-300 disabled:bg-red-300 disabled:border-red-400 disabled:hover:bg-rose-400 disabled:hover:border-rose-500"
               @click="emit('on-submit')"
               :disabled="!canChangeAnswer"
               :title="canChangeAnswer ? '' : 'Submitted already, can\'t make changes'"
