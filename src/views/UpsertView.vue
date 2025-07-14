@@ -14,7 +14,7 @@
         >
           <Transition name="slide">
             <div
-              v-if="isSidebarVisible"
+              v-show="isSidebarVisible"
               class="flex flex-col justify-between overflow-visible gap-4"
             >
               <div class="flex flex-col gap-4">
@@ -175,24 +175,23 @@
                       {{ errors.get('overall') }}
                     </div>
                   </Transition>
-                  <button
-                    class="font-semibold flex border border-amber-400 bg-yellow-400 rounded-md px-4 py-2 justify-between cursor-pointer font-semibold items-center justify-center hover:bg-amber-400 hover:border-orange-600 hover:text-black transition-colors duration-300"
-                    type="submit"
-                  >
+                  <ButtonYellow class="font-semibold" type="submit" :is-border="false">
                     submit
-                  </button>
+                  </ButtonYellow>
                 </div>
               </div>
             </div>
           </Transition>
-          <div
-            class="flex justify-center items-center hover:bg-amber-300 transition-colors duration-300 cursor-pointer rounded-md sticky top-0"
+          <ButtonYellow
             @click="isSidebarVisible = !isSidebarVisible"
+            :is-border="false"
+            class="p-1! border-none!"
+            type="button"
           >
             <div class="material-symbols-outlined">
               {{ isSidebarVisible ? 'keyboard_double_arrow_left' : 'keyboard_double_arrow_right' }}
             </div>
-          </div>
+          </ButtonYellow>
         </div>
         <div class="flex-1 flex gap-4 p-6 rounded-md">
           <div class="flex flex-col p-6 items-start w-full bg-white">
@@ -249,6 +248,7 @@ import { handleError } from '@/utils/error.ts'
 import router from '@/router/index.ts'
 import { useAuthStore } from '@/stores/auth.ts'
 import type { HttpResponse } from '@/types/types.ts'
+import ButtonYellow from '@/components/buttons/ButtonYellow.vue'
 
 const route = useRoute()
 const examId = route.query.examId
@@ -271,7 +271,7 @@ onMounted(() => {
   try {
     const authStore = useAuthStore()
     authStore.ensureToken()
-    if (typeof courseTeacherId != 'string') throw new Error('Missing required URL query')
+    if (typeof courseTeacherId != 'string') throw new Error('Missing required URL param')
     if (typeof examId == 'string') prefill()
     if (typeof examId != 'string' && form.questions.length == 0) createQuestion()
   } catch (err) {
@@ -356,9 +356,11 @@ const submit = async () => {
   }
 }
 
-const onClose = () => {
-  if (typeof examId == 'string') window.location.reload()
-  else router.push({ name: 'HomeView' })
+const onClose = async () => {
+  if (typeof examId == 'string') {
+    form.questions = []
+    await prefill()
+  } else router.push({ name: 'HomeView' })
 }
 
 const errors = ref(new Map<string, string>())

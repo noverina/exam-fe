@@ -2,9 +2,11 @@ import { defineStore } from 'pinia'
 import { jwtDecode } from 'jwt-decode'
 import router from '@/router'
 import type { JwtPayload } from 'jwt-decode'
-import { auth, refresh, me, logout } from '@/utils/api/auth'
+import { auth, refresh as refreshToken, fetchUser, logout } from '@/utils/api/auth'
 import { handleError } from '@/utils/error'
 import type { User, Auth, HttpResponse } from '@/types/types.ts'
+
+let hydrated = false
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -16,56 +18,68 @@ export const useAuthStore = defineStore('auth', {
     isLoggedIn: (state) => !!state.accessToken,
   },
   actions: {
-    getExpiry(token: string) {
+    async getExpiry(token: string) {
       try {
         const { exp } = jwtDecode<JwtPayload>(token)
         this.tokenExpiry = exp ?? -1 * 1000
         if (this.tokenExpiry < 0) throw new Error('Invalid token expiry')
       } catch (err) {
         this.logout()
-        if (err instanceof Error) handleError(err, null, null)
+        if (err instanceof Error) handleError(err)
       }
     },
-    async login(data: Auth) {
+    async login(data: Auth, fetchFn: typeof window.fetch = window.fetch) {
       try {
-        const response = await auth(data)
+        const response = await auth(data, fetchFn)
         this.accessToken = response.data
+        await this.getExpiry(response.data)
+        await this.me(fetchFn)
       } catch (err) {
         this.logout()
-        if (err instanceof Error) handleError(err, null, null)
+        if (err instanceof Error) handleError(err)
       }
     },
-    async refresh() {
+    async refresh(fetchFn: typeof window.fetch = window.fetch) {
       try {
-        const response = (await refresh()) as HttpResponse<string>
+        console.log('refresh ')
+        const response = (await refreshToken(fetchFn)) as HttpResponse<string>
         this.accessToken = response.data
-        this.getExpiry(response.data)
+        await this.getExpiry(response.data)
         if (!this.user) {
-          const response = (await me()) as HttpResponse<User>
-
-          this.user = response.data
+          await this.me(fetchFn)
         }
       } catch (err) {
         this.logout()
-        if (err instanceof Error) handleError(err, null, null)
+        if (err instanceof Error) handleError(err)
       }
     },
-    async ensureToken() {
+    async me(fetchFn: typeof window.fetch = window.fetch) {
       try {
-        // check a minute before actual expiry time
-        if (!this.accessToken || this.tokenExpiry - Date.now() < 60_000) await this.refresh()
+        const response = (await fetchUser(fetchFn)) as HttpResponse<User>
+        this.user = response.data
+        await this.getExpiry(this.accessToken!)
       } catch (err) {
         this.logout()
-        if (err instanceof Error) handleError(err, null, null)
+        if (err instanceof Error) handleError(err)
       }
     },
-    async logout() {
+    async ensureToken(fetchFn: typeof window.fetch = window.fetch) {
       try {
-        await logout()
+        console.log('ensuring token')
+        if (!this.accessToken || this.tokenExpiry - Math.floor(Date.now() / 1000) < 60)
+          await this.refresh(fetchFn)
+      } catch (err) {
+        this.logout()
+        if (err instanceof Error) handleError(err)
+      }
+    },
+    async logout(fetchFn: typeof window.fetch = window.fetch) {
+      try {
+        await logout(fetchFn)
         this.clear()
         router.push({ name: 'LoginView' })
       } catch (err) {
-        if (err instanceof Error) handleError(err, null, null)
+        if (err instanceof Error) handleError(err)
       }
     },
     clear() {
@@ -74,8 +88,11 @@ export const useAuthStore = defineStore('auth', {
       this.tokenExpiry = 0
     },
   },
+
   persist: {
     afterHydrate: async () => {
+      if (hydrated) return
+      hydrated = true
       const store = useAuthStore()
       await store.ensureToken()
     },

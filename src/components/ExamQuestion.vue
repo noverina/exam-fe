@@ -1,14 +1,15 @@
 <template>
-  <div class="flex flex-col border border-gray-400 m-4 p-4 gap-2 rounded-sm">
+  <div class="flex flex-col border border-gray-600 m-4 p-4 gap-2 rounded-sm">
     <span class="font-semibold">{{ index + 1 }}. {{ question.text }}</span>
     <ExamAnswer
       v-for="answer in question.answers"
       :key="answer.answerId"
       :answer="answer"
-      :answer-value="selectedAnswer"
+      :selected-answer="selectedAnswer"
+      :correct-answer="question.correctAnswerId"
       :can-change-answer="canChangeAnswer"
       @select-answer="selectAnswer"
-    ></ExamAnswer>
+    />
   </div>
 </template>
 
@@ -33,7 +34,7 @@ const emit = defineEmits<{
   'answer-question': [data: { questionId: string; answerId: string }]
 }>()
 
-function selectAnswer(answerId: string) {
+const selectAnswer = (answerId: string) => {
   selectedAnswer.value = answerId
   emit('answer-question', { questionId: props.question.questionId, answerId: answerId })
 }

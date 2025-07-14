@@ -4,46 +4,60 @@
     :class="isContentVisible ? 'p-4' : 'px-3 py-4'"
   >
     <div class="flex h-full gap-2">
-      <button
-        class="material-symbols-outlined hover:bg-amber-300 transition-colors duration-300 cursor-pointer rounded-md"
+      <ButtonYellow
+        class="material-symbols-outlined p-1! border-none!"
         @click="isContentVisible = !isContentVisible"
+        :is-border="false"
       >
         {{ isContentVisible ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}
-      </button>
+      </ButtonYellow>
       <Transition name="slide">
         <div v-if="isContentVisible" class="flex flex-col gap-4 justify-between">
           <div class="grid grid-cols-3 gap-1">
-            <button
-              v-for="(question, index) in questions"
-              :key="question.questionId"
-              class="cursor-pointer w-8 h-8 rounded-sm transition-colors duration-300"
-              :class="
-                answeredQuestions.get(question.questionId)
-                  ? 'bg-green-300 hover:bg-emerald-400'
-                  : 'bg-red-300 hover:bg-rose-400'
-              "
-              @click="scrollToQuestion(question.questionId)"
-            >
-              {{ index + 1 }}
-            </button>
+            <template v-for="(question, index) in questions" :key="question.questionId">
+              <ButtonGreen
+                v-if="answeredQuestions.get(question.questionId)"
+                @click="scrollToQuestion(question.questionId)"
+                :is-border="false"
+                class="w-8 h-8 flex items-center justify-center"
+                >{{ index + 1 }}</ButtonGreen
+              >
+              <ButtonRed
+                class="w-8 h-8 flex items-center justify-center"
+                v-else
+                @click="scrollToQuestion(question.questionId)"
+                :is-border="false"
+                >{{ index + 1 }}</ButtonRed
+              >
+            </template>
           </div>
-          <div class="flex flex-col gap-2 text-sm">
-            <button
-              class="rounded-sm py-2 px-4 cursor-pointer border border-gray-400 hover:border-gray-700 disabled:cursor-not-allowed transition-colors duration-300 disabled:border-red-400 disabled:hover:bg-red-100"
-              @click="emit('on-save')"
-              :disabled="!canChangeAnswer"
-              :title="canChangeAnswer ? '' : 'Submitted already, can\'t make changes'"
-            >
-              save
-            </button>
-            <button
-              class="rounded-sm py-2 px-4 cursor-pointer bg-amber-300 border border-orange-400 font-semibold hover:border-orange-600 hover:bg-amber-400 disabled:cursor-not-allowed transition-colors duration-300 disabled:bg-red-300 disabled:border-red-400 disabled:hover:bg-rose-400 disabled:hover:border-rose-500"
-              @click="emit('on-submit')"
-              :disabled="!canChangeAnswer"
-              :title="canChangeAnswer ? '' : 'Submitted already, can\'t make changes'"
-            >
-              submit
-            </button>
+          <div>
+            <div v-if="canChangeAnswer" class="flex flex-col gap-2 text-sm">
+              <ButtonBase @click="emit('on-save')"> save </ButtonBase>
+              <ButtonYellow @click="emit('on-submit')" :is-border="false" class="font-semibold">
+                submit
+              </ButtonYellow>
+            </div>
+            <div v-else class="flex flex-col gap-2 text-sm">
+              <ButtonRed
+                @click="emit('on-save')"
+                disabled
+                :title="'Submitted already, can\'t make changes'"
+                :is-border="true"
+                class="cursor-not-allowed!"
+              >
+                save
+              </ButtonRed>
+              <ButtonRed
+                @click="emit('on-submit')"
+                disabled
+                :title="'Submitted already, can\'t make changes'"
+                :is-border="false"
+                class="cursor-not-allowed! font-semibold"
+              >
+                submit
+              </ButtonRed>
+            </div>
           </div>
         </div>
       </Transition>
@@ -53,6 +67,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Question } from '@/types/types.ts'
+import ButtonYellow from './buttons/ButtonYellow.vue'
+import ButtonRed from './buttons/ButtonRed.vue'
+import ButtonGreen from './buttons/ButtonGreen.vue'
+import ButtonBase from './buttons/ButtonBase.vue'
 
 interface Props {
   canChangeAnswer: boolean

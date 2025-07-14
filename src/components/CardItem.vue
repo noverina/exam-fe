@@ -2,7 +2,7 @@
   <div
     class="bg-white text-sm rounded-t border border-gray-400"
     :class="{
-      'border-red-400!': anyExamNotUndertaken && role == 'STUDENT',
+      'border-red-400!': anyExamNotUndertaken() && role == 'STUDENT',
     }"
   >
     <div
@@ -24,7 +24,7 @@
           add
         </div>
         <div
-          v-if="anyExamNotUndertaken && role == 'STUDENT'"
+          v-if="anyExamNotUndertaken() && role == 'STUDENT'"
           class="material-symbols-outlined text-red-600 zoom"
           title="There exist ongoing exam with unsubmitted answers"
         >
@@ -51,18 +51,19 @@
             @grade="grade"
           />
         </div>
-        <div v-else class="px-4 py-2 m-2 border text-gray-400 rounded-md">No data found</div>
+        <div v-else><NoDataFound /></div>
       </div>
     </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
 import type { Course } from '@/types/types.ts'
 import CardExam from '@/components/CardExam.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import NoDataFound from './NoDataFound.vue'
 
 interface Props {
   course: Course
@@ -105,14 +106,14 @@ watch(
 const authStore = useAuthStore()
 const role = authStore.user?.role
 
-const anyExamNotUndertaken = computed(() => {
+const anyExamNotUndertaken = () => {
   const now = new Date()
   return props.course.exams.some((exam) => {
     const startDate = new Date(exam.startDate)
     const endDate = new Date(exam.endDate)
     return now > startDate && now < endDate && exam.submitDate === null
   })
-})
+}
 </script>
 
 <style scoped>

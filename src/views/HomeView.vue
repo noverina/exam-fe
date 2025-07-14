@@ -2,6 +2,7 @@
   <main class="cursor-auto text-gray-800 text-sm">
     <ModalError ref="errorModal" :text="errorText" :code="statusCode" />
     <ModalConfirmation ref="confirmModal" @confirm-action="grade" :text="confirmText" />
+    <ModalSuccess ref="successModal" :on-close="populate" />
     <div v-show="loading">
       <LoadingSpinner />
     </div>
@@ -29,12 +30,9 @@
             </select>
           </div>
 
-          <button
-            @click="toggleAll"
-            class="px-4 py-2 rounded-md cursor-pointer border border-gray-400 transition-colors duration-300 hover:border-gray-700"
-          >
+          <ButtonBase @click="toggleAll">
             {{ anyExpanded ? 'Collapse All' : 'Expand All' }}
-          </button>
+          </ButtonBase>
         </div>
         <div v-if="filteredData.length > 0" class="flex flex-wrap items-start gap-4 p-2">
           <CardItem
@@ -47,9 +45,9 @@
             class="w-full sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)]"
           />
         </div>
-        <div v-else class="p-4 m-4 border text-gray-400 rounded-md bg-white">No data found</div>
+        <div v-else><NoDataFound /></div>
       </div>
-      <div v-else class="p-4 m-4 border text-gray-400 rounded-md bg-white">No data found</div>
+      <div v-else><NoDataFound /></div>
     </div>
   </main>
 </template>
@@ -63,6 +61,10 @@ import ModalError from '@/components/ModalError.vue'
 import ModalConfirmation from '@/components/ModalConfirmation.vue'
 import { handleError } from '@/utils/error'
 import { useAuthStore } from '@/stores/auth'
+import { originalFetch } from '@/main'
+import ModalSuccess from '@/components/ModalSuccess.vue'
+import NoDataFound from '@/components/NoDataFound.vue'
+import ButtonBase from '@/components/buttons/ButtonBase.vue'
 
 const data = ref<Course[]>([])
 const statusFilter = ref('all')
@@ -85,9 +87,21 @@ const statusCode = ref('')
 const authStore = useAuthStore()
 
 onMounted(async () => {
+  loading.value = true
+  try {
+    await authStore.ensureToken(originalFetch)
+    anyComponentsExpanded.value = data.value.map(() => false)
+    await populate()
+  } catch (err) {
+    if (err instanceof Error) handleError(err, errorModal, statusCode)
+  } finally {
+    loading.value = false
+  }
+})
+
+const populate = async () => {
   try {
     loading.value = true
-    await authStore.ensureToken()
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
     const response = await fetch(
       `course?userId=${authStore.user?.id}&role=${authStore.user?.role}&timezone=${timezone}`,
@@ -99,13 +113,12 @@ onMounted(async () => {
       course.exams = sortExams(course.exams)
     }
     data.value = courses
-    anyComponentsExpanded.value = data.value.map(() => false)
   } catch (err) {
     if (err instanceof Error) handleError(err, errorModal, statusCode)
   } finally {
     loading.value = false
   }
-})
+}
 
 const anyComponentsExpanded = ref<boolean[]>([])
 watch(data, (newData) => {
@@ -130,21 +143,26 @@ const collapseAll = () => {
 
 const confirmText = ref('')
 const confirmModal = ref<InstanceType<typeof ModalConfirmation> | null>(null)
-const onGrade = () => {
+const onGrade = (examId: string) => {
   confirmText.value = 'Do you really want to grade this exam?'
   confirmModal.value?.open()
+  toGrade.value = examId
 }
 
-const grade = async (examId: string) => {
+const successModal = ref<InstanceType<typeof ModalSuccess> | null>(null)
+const toGrade = ref('')
+const grade = async () => {
   try {
     loading.value = true
-    const res = await fetch(`exam/grade/examId=${examId}`)
+    const res = await fetch(`exam/grade?examId=${toGrade.value}`)
     const data = (await res.json()) as HttpResponse<null>
     if (data.isError) throw new Error(data.message)
+    successModal.value?.open()
   } catch (err) {
-    if (err instanceof Error) handleError(err)
+    if (err instanceof Error) handleError(err, errorModal, statusCode)
   } finally {
     loading.value = false
+    toGrade.value = ''
   }
 }
 

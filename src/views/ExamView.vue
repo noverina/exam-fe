@@ -1,6 +1,6 @@
 <template>
   <main class="cursor-auto text-sm text-gray-800">
-    <ModalSuccess ref="successModal" :on-close="reload" />
+    <ModalSuccess ref="successModal" :on-close="onClose" />
     <ModalConfirmation ref="confirmModal" @confirm-action="submit" :text="confirmText" />
     <ModalError ref="errorModal" :text="errorText" :code="statusCode" />
     <div v-show="loading">
@@ -51,7 +51,7 @@
           z-40
         ></ExamSheet>
       </div>
-      <div v-else class="p-4 m-4 border text-gray-400 rounded-md bg-white">No data found</div>
+      <div v-else><NoDataFound /></div>
     </div>
   </main>
 </template>
@@ -64,12 +64,14 @@ import ExamSheet from '../components/ExamSheet.vue'
 import ModalConfirmation from '@/components/ModalConfirmation.vue'
 import ModalError from '@/components/ModalError.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import NoDataFound from '@/components/NoDataFound.vue'
 import type { FormSubmitExam } from '@/types/formTypes.ts'
 import { ExamType } from '@/types/enums.ts'
 import { pinia } from '@/pinia'
 import { useAuthStore } from '@/stores/auth.ts'
 import { handleError } from '@/utils/error.ts'
 import ModalSuccess from '@/components/ModalSuccess.vue'
+import { originalFetch } from '@/main'
 
 const route = useRoute()
 const examId = route.params.id
@@ -84,30 +86,17 @@ const loading = ref(false)
 const authStore = useAuthStore(pinia)
 
 let intervalId: number
-const studentId = authStore.user?.id
+const studentId = route.query.studentId ? route.query.studentId : authStore.user?.id
 const errorModal = ref<InstanceType<typeof ModalError> | null>(null)
 const errorText = ref('')
 const statusCode = ref('')
 
 onMounted(async () => {
+  loading.value = true
   try {
-    authStore.ensureToken()
-    if (typeof examId !== 'string') throw new Error('Missing required URL query')
-
-    loading.value = true
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    const res = await fetch(
-      `exam/answer/data?examId=${examId}&studentId=${studentId}&timezone=${timezone}`,
-    )
-    const resJson = (await res.json()) as unknown as HttpResponse<ExamDetail>
-    const data = resJson.data
-    data.examType = ExamType[data.examType as unknown as keyof typeof ExamType]
-    examData.value = data
-    // populate the answered/unanswered indicator
-    for (const question of data.questions) {
-      answeredQuestions.value.set(question.questionId, question.selectedAnswerId)
-    }
-
+    await authStore.ensureToken(originalFetch)
+    if (typeof examId !== 'string') throw new Error('Missing required URL param')
+    await populate()
     calculateTimeLeft()
     intervalId = setInterval(calculateTimeLeft, 1000)
   } catch (err) {
@@ -121,6 +110,21 @@ onUnmounted(() => {
   clearInterval(intervalId)
 })
 
+const populate = async () => {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const res = await fetch(
+    `exam/answer/data?examId=${examId}&studentId=${studentId}&timezone=${timezone}`,
+  )
+  const resJson = (await res.json()) as unknown as HttpResponse<ExamDetail>
+  const data = resJson.data
+  data.examType = ExamType[data.examType as unknown as keyof typeof ExamType]
+  examData.value = data
+  // populate the answered/unanswered indicator
+  for (const question of data.questions) {
+    answeredQuestions.value.set(question.questionId, question.selectedAnswerId)
+  }
+}
+
 const answeredQuestions = ref<Map<string, string>>(new Map())
 const answerQuestion = (data: { questionId: string; answerId: string }) => {
   answeredQuestions.value.set(data.questionId, data.answerId)
@@ -128,19 +132,22 @@ const answerQuestion = (data: { questionId: string; answerId: string }) => {
 
 const saving = ref(false)
 const save = async () => {
+  saving.value = true
   try {
-    saving.value = true
     form.value.examId = String(examId)
-    form.value.studentId = studentId!
+    form.value.studentId = String(studentId)
     form.value.isFinal = false
     form.value.choices = Array.from(answeredQuestions.value, ([key, value]) => ({
       questionId: key,
       answerId: value,
     }))
-    const res = (await fetch('exam/answer', {
-      method: 'POST',
-      body: JSON.stringify(form.value),
-    })) as unknown as HttpResponse<string | null>
+    const [res, _delay] = await Promise.all([
+      (await fetch('exam/answer', {
+        method: 'POST',
+        body: JSON.stringify(form.value),
+      })) as unknown as HttpResponse<null>,
+      new Promise((res) => setTimeout(res, 2000)),
+    ])
     if (res.isError) throw new Error(res.message)
   } catch (err) {
     if (err instanceof Error) handleError(err, errorModal, statusCode)
@@ -164,12 +171,16 @@ const onSubmit = () => {
   confirmModal.value?.open()
 }
 
+const onClose = async () => {
+  await populate()
+}
+
 const successModal = ref<InstanceType<typeof ModalSuccess> | null>(null)
 const submit = async () => {
   try {
     loading.value = true
     form.value.examId = String(examId)
-    form.value.studentId = studentId!
+    form.value.studentId = String(studentId)
     form.value.isFinal = true
     form.value.choices = Array.from(answeredQuestions.value, ([key, value]) => ({
       questionId: key,
@@ -186,10 +197,6 @@ const submit = async () => {
   } finally {
     loading.value = false
   }
-}
-
-const reload = () => {
-  window.location.reload()
 }
 
 const remainingTime = ref({

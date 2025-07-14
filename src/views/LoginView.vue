@@ -9,6 +9,7 @@
       class="border border-gray-300 rounded-sm overflow-auto bg-white p-10 w-4/12 gap-10"
     >
       <form @submit.prevent="login" class="flex flex-col gap-6">
+        <div class="text-lg font-semibold">Portofolio - Exam App</div>
         <div class="flex flex-col gap-2 w-full">
           <label for="email">E-mail</label>
           <input
@@ -47,13 +48,7 @@
           </Transition>
         </div>
         <div class="flex flex-col gap-4 w-full">
-          <button
-            type="submit"
-            @click="login"
-            class="text-center cursor-pointer rounded-full bg-yellow-300 py-2 w-full transition-colors duration-300 font-semibold hover:bg-amber-400"
-          >
-            Login
-          </button>
+          <ButtonYellow type="submit" :is-border="false">Login</ButtonYellow>
         </div>
       </form>
     </div>
@@ -61,13 +56,15 @@
 </template>
 
 <script setup lang="ts">
-import { auth } from '@/utils/api/auth'
 import ModalError from '@/components/ModalError.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import type { Auth } from '@/types/types'
 import { ref } from 'vue'
 import { handleError } from '@/utils/error'
 import { useRouter } from 'vue-router'
+import { originalFetch } from '@/main'
+import { useAuthStore } from '@/stores/auth'
+import ButtonYellow from '@/components/buttons/ButtonYellow.vue'
 
 const errorModal = ref<InstanceType<typeof ModalError> | null>(null)
 
@@ -81,21 +78,20 @@ const form = ref<Auth>({
   password: '',
 })
 
+const authStore = useAuthStore()
 const errors = ref(new Map<string, string>())
 const login = async () => {
   errors.value = validate(form.value)
   if (errors.value.size == 0) {
     loading.value = true
-    auth(form.value)
-      .then(() => {
-        router.push({ name: 'HomeView' })
-      })
-      .catch((err) => {
-        handleError(err, errorModal, statusCode)
-      })
-      .finally(() => {
-        loading.value = false
-      })
+    try {
+      await authStore.login(form.value, originalFetch)
+      router.push({ name: 'HomeView' })
+    } catch (err) {
+      if (err instanceof Error) handleError(err, errorModal, statusCode)
+    } finally {
+      loading.value = false
+    }
   }
 }
 

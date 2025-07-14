@@ -1,13 +1,17 @@
 <template>
   <div
-    class="flex gap-2 p-2 text-sm border border-gray-300"
-    :class="{ 'bg-green-100': answer.isCorrect }"
+    class="flex gap-2 p-2 text-sm border border-gray-400"
+    :class="{
+      'bg-green-100': selectedAnswer == answer.answerId && answer.isCorrect == true,
+      'bg-red-100': selectedAnswer == answer.answerId && answer.isCorrect == false,
+      'border-green-500 font-semibold': answer.answerId == correctAnswer,
+    }"
   >
     <input
       type="radio"
       id="radio"
       :value="answer.answerId"
-      :checked="answerValue === answer.answerId"
+      :checked="selectedAnswer === answer.answerId"
       :disabled="!canChangeAnswer"
       @change="onClick"
     />
@@ -20,7 +24,8 @@ import type { Answer } from '@/types/types'
 
 interface Props {
   answer: Answer
-  answerValue: string | null
+  selectedAnswer: string | null
+  correctAnswer: string | null
   canChangeAnswer: boolean
 }
 const props = defineProps<Props>()

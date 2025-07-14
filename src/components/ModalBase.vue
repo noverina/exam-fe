@@ -57,18 +57,3 @@ const close = () => {
 
 defineExpose({ open, close })
 </script>
-
-<style scoped>
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.25s ease;
-}
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
-}
-</style>

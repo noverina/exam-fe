@@ -35,7 +35,7 @@ const router = createRouter({
       component: LoginView,
     },
     {
-      path: '/grade',
+      path: '/grade/:courseTeacherId/:examId',
       name: 'GradeView',
       component: GradeView,
       meta: { requiresAuth: true, requiresPermission: 'TEACHER' },

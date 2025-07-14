@@ -19,6 +19,7 @@ export async function fetchWithAuth(
       ...{ 'Content-Type': 'application/json' },
     },
     signal: AbortSignal.timeout(fetchTimeout),
+    credentials: 'include',
   })
 
   if (response.status === 401) {
@@ -27,9 +28,9 @@ export async function fetchWithAuth(
       ...init,
       headers: {
         ...(init.headers ?? {}),
-        Authorization: `Bearer ${store.accessToken}`,
       },
       signal: AbortSignal.timeout(fetchTimeout),
+      credentials: 'include',
     })
   }
 

@@ -36,6 +36,7 @@ export interface ExamDetail {
 
 export interface Question {
   questionId: string
+  correctAnswerId: string
   selectedAnswerId: string
   text: string
   answers: Answer[]

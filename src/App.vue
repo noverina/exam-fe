@@ -51,4 +51,20 @@ const showHeader = computed(() => {
   transform: scaleY(1);
   opacity: 1;
 }
+
+.pop-enter-from {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.pop-enter-active {
+  transition:
+    transform 0.3s ease-out,
+    opacity 0.3s ease-out;
+}
+
+.pop-enter-to {
+  opacity: 1;
+  transform: scale(1);
+}
 </style>

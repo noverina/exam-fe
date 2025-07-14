@@ -8,8 +8,8 @@
       <div class="flex flex-col gap-4 p-4 m-5 rounded-md bg-white">
         <div class="flex justify-between items-center border-b border-black p-4">
           <div>
-            <div class="font-bold">{{ data.courseName }}</div>
-            <div>{{ data.examType }}</div>
+            <div class="font-bold">{{ data?.courseName }}</div>
+            <div>{{ data?.examType }}</div>
           </div>
           <div>
             <div>
@@ -21,7 +21,7 @@
           </div>
         </div>
 
-        <div class="flex justify-end">
+        <div class="flex justify-end py-4">
           <div
             class="flex gap-4 border border-gray-400 px-4 py-2 rounded-md items-center justify-center"
           >
@@ -70,7 +70,7 @@
               </div>
             </div>
           </div>
-          <div v-else class="p-4 m-4 border text-gray-400 rounded-md bg-white">No data found</div>
+          <div v-else><NoDataFound /></div>
         </Transition>
       </div>
     </div>
@@ -82,15 +82,19 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ModalError from '@/components/ModalError.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import NoDataFound from '@/components/NoDataFound.vue'
 import type { Grade, HttpResponse } from '@/types/types'
 import { ExamType } from '@/types/enums'
 import { handleError } from '@/utils/error'
+import { useAuthStore } from '@/stores/auth'
+import { originalFetch } from '@/main'
 
 const loading = ref(true)
 const route = useRoute()
 const router = useRouter()
-const examId = route.query.examId
-const courseTeacherId = route.query.courseTeacherId
+const examId = route.params.examId
+const courseTeacherId = route.params.courseTeacherId
+const authStore = useAuthStore()
 
 const statusCode = ref('')
 const errorText = ref('')
@@ -107,13 +111,15 @@ const data = ref<Grade>({
 const errorModal = ref<InstanceType<typeof ModalError> | null>(null)
 
 onMounted(async () => {
+  loading.value = true
   try {
-    loading.value = true
+    await authStore.ensureToken(originalFetch)
     if (typeof courseTeacherId != 'string' || typeof examId != 'string')
-      throw new Error('Missing required URL query')
-    const res = (
+      throw new Error('Missing required URL param')
+    const res = (await (
       await fetch(`exam/grade/data?examId=${examId}&courseTeacherId=${courseTeacherId}`)
-    ).json() as unknown as HttpResponse<Grade | string>
+    ).json()) as unknown as HttpResponse<Grade | string>
+    console.log('res', res)
     data.value = res.data as Grade
   } catch (err) {
     if (err instanceof Error) handleError(err, errorModal, statusCode)
@@ -145,6 +151,7 @@ const filteredStudents = computed(() => {
 })
 
 const toExamView = (studentId: string) => {
+  console.log(studentId)
   router.push({
     name: 'ExamView',
     params: { id: data.value.examId },
