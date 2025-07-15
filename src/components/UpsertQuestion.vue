@@ -8,13 +8,14 @@
         No. <span>{{ index + 1 }}</span>
       </div>
       <div class="flex items-center gap-2">
-        <div
-          class="flex rounded-full px-4 bg-white text-red-600 border border-red-800 items-center gap-1 cursor-pointer transition-colors duration-300 hover:text-red-800 hover:bg-red-100 hover:border-red-900"
+        <ButtonRed
+          class="flex text-red-500 hover:text-red-700 px-4 items-center justify-center gap-2"
           @click="deleteQuestion(question.questionId)"
+          :is-border="true"
         >
           <div>Delete</div>
           <span class="material-symbols-outlined small-icon"> delete </span>
-        </div>
+        </ButtonRed>
       </div>
     </div>
     <div class="flex items-center gap-4">
@@ -30,14 +31,10 @@
         required
       />
     </div>
-    <Transition name="fade">
-      <div
-        v-if="errors.get('question-text-' + question.questionId)"
-        class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-      >
-        {{ errors.get('question-text-' + question.questionId) }}
-      </div>
-    </Transition>
+
+    <ErrorForm :show-condition="errors.get(`question-text-${question.questionId}`)">
+      {{ errors.get(`question-text-${question.questionId}`) }}</ErrorForm
+    >
     <div class="flex items-start gap-4">
       <div class="flex justify-between w-40 rounded-full border border-gray-400 px-4 py-2">
         <div>Answer</div>
@@ -52,22 +49,12 @@
       </div>
 
       <div class="flex flex-col flex-1 gap-4">
-        <Transition name="fade">
-          <div
-            v-if="createError.get('create-answer')"
-            class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-          >
-            {{ createError.get('create-answer') }}
-          </div>
-        </Transition>
-        <Transition name="fade">
-          <div
-            v-if="errors.get('answers')"
-            class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-          >
-            {{ errors.get('answers') }}
-          </div>
-        </Transition>
+        <ErrorForm :show-condition="createError.get('create-answer')">
+          {{ createError.get('create-answer') }}</ErrorForm
+        >
+        <ErrorForm :show-condition="errors.get(`question-answer-${question.questionId}`)">
+          {{ errors.get(`question-answer-${question.questionId}`) }}</ErrorForm
+        >
         <TransitionGroup
           v-if="question.answers.length > 0"
           name="fade"
@@ -93,6 +80,8 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import UpsertAnswer from '@/components/UpsertAnswer.vue'
 import type { FormUpsertQuestion } from '@/types/formTypes'
+import ButtonRed from './buttons/ButtonRed.vue'
+import ErrorForm from '@/components/ErrorForm.vue'
 
 interface Props {
   index: number

@@ -56,14 +56,9 @@
                     time-picker-inline
                   />
                 </div>
-                <Transition name="fade">
-                  <div
-                    v-if="errors.get('start-date')"
-                    class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-                  >
-                    {{ errors.get('start-date') }}
-                  </div>
-                </Transition>
+                <ErrorForm :show-condition="errors.get('start-date')">
+                  {{ errors.get('start-date') }}</ErrorForm
+                >
                 <div class="flex items-center gap-2">
                   <label for="end-date" class="w-40 rounded-full border border-gray-400 px-4 py-2"
                     >End date</label
@@ -82,16 +77,11 @@
                     time-picker-inline
                   />
                 </div>
-                <Transition name="fade">
-                  <div
-                    v-if="errors.get('end-date')"
-                    class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-                  >
-                    {{ errors.get('end-date') }}
-                  </div>
-                </Transition>
+                <ErrorForm :show-condition="errors.get('end-date')">
+                  {{ errors.get('end-date') }}</ErrorForm
+                >
                 <div class="flex items-center gap-2">
-                  <label for="end-date" class="w-40 rounded-full border border-gray-400 px-4 py-2"
+                  <label for="passing" class="w-40 rounded-full border border-gray-400 px-4 py-2"
                     >Passing grade</label
                   >
                   <input
@@ -102,14 +92,9 @@
                     class="border-b flex flex-1 px-4 focus:outline-1"
                   />
                 </div>
-                <Transition name="fade">
-                  <div
-                    v-if="errors.get('passing-grade')"
-                    class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-                  >
-                    {{ errors.get('passing-grade') }}
-                  </div>
-                </Transition>
+                <ErrorForm :show-condition="errors.get('passing-grade')">
+                  {{ errors.get('passing-grade') }}</ErrorForm
+                >
                 <div
                   class="flex border border-gray-400 rounded-full w-full px-4 py-2 justify-between"
                 >
@@ -125,14 +110,10 @@
                     </div>
                   </div>
                 </div>
-                <Transition name="fade">
-                  <div
-                    v-if="instantErrors.get('create-question')"
-                    class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-                  >
-                    {{ instantErrors.get('create-question') }}
-                  </div>
-                </Transition>
+                <ErrorForm :show-condition="errors.get('create-question')">
+                  {{ errors.get('create-question') }}</ErrorForm
+                >
+
                 <div
                   class="flex border border-gray-400 rounded-full w-full px-4 py-2 justify-between"
                 >
@@ -158,23 +139,13 @@
                 </div>
               </div>
               <div>
-                <Transition name="fade">
-                  <div
-                    v-if="instantErrors.get('jump-input')"
-                    class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-                  >
-                    {{ instantErrors.get('jump-input') }}
-                  </div>
-                </Transition>
+                <ErrorForm :show-condition="instantErrors.get('jump-input')">
+                  {{ instantErrors.get('jump-input') }}</ErrorForm
+                >
                 <div class="flex flex-col gap-4">
-                  <Transition name="fade">
-                    <div
-                      v-if="errors.get('overall')"
-                      class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-                    >
-                      {{ errors.get('overall') }}
-                    </div>
-                  </Transition>
+                  <ErrorForm :show-condition="errors.get('overall')">
+                    {{ errors.get('overall') }}</ErrorForm
+                  >
                   <ButtonYellow class="font-semibold" type="submit" :is-border="false">
                     submit
                   </ButtonYellow>
@@ -249,6 +220,7 @@ import router from '@/router/index.ts'
 import { useAuthStore } from '@/stores/auth.ts'
 import type { HttpResponse } from '@/types/types.ts'
 import ButtonYellow from '@/components/buttons/ButtonYellow.vue'
+import ErrorForm from '@/components/ErrorForm.vue'
 
 const route = useRoute()
 const examId = route.query.examId
@@ -334,6 +306,7 @@ const prefill = async () => {
 
 const onSubmit = () => {
   const errorsResult = validate(form)
+  console.log(errorsResult)
   errors.value = errorsResult
   if (errors.value.size == 0) {
     confirmModal.value?.open()
@@ -395,7 +368,10 @@ const validate = (data: FormUpsertExam): Map<string, string> => {
         }
         const anyCorrectAnswer = question.answers.filter((answer) => answer.isCorrect)
         if (anyCorrectAnswer.length == 0)
-          output.set('answers', 'Question must have one correct answer')
+          output.set(
+            'question-answer-' + question.questionId,
+            'Question must have one correct answer',
+          )
       } else {
         output.set('answers', 'Minimum 1 answer required')
       }

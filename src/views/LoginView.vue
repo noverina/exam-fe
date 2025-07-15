@@ -8,7 +8,7 @@
       v-show="!loading"
       class="border border-gray-300 rounded-sm overflow-auto bg-white p-10 w-4/12 gap-10"
     >
-      <form @submit.prevent="login" class="flex flex-col gap-6">
+      <form @submit.prevent="login" class="flex flex-col gap-6" novalidate>
         <div class="text-lg font-semibold">Portofolio - Exam App</div>
         <div class="flex flex-col gap-2 w-full">
           <label for="email">E-mail</label>
@@ -19,14 +19,7 @@
             placeholder="Type here..."
             v-model="form.email"
           />
-          <Transition name="fade">
-            <div
-              v-if="errors.get('email')"
-              class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-            >
-              {{ errors.get('email') }}
-            </div>
-          </Transition>
+          <ErrorForm :show-condition="errors.get('email')"> {{ errors.get('email') }}</ErrorForm>
         </div>
 
         <div class="flex flex-col gap-2 w-full">
@@ -38,14 +31,9 @@
             placeholder="Type here..."
             v-model="form.password"
           />
-          <Transition name="fade">
-            <div
-              v-if="errors.get('password')"
-              class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-            >
-              {{ errors.get('password') }}
-            </div>
-          </Transition>
+          <ErrorForm :show-condition="errors.get('password')">
+            {{ errors.get('password') }}</ErrorForm
+          >
         </div>
         <div class="flex flex-col gap-4 w-full">
           <ButtonYellow type="submit" :is-border="false">Login</ButtonYellow>
@@ -65,6 +53,7 @@ import { useRouter } from 'vue-router'
 import { originalFetch } from '@/main'
 import { useAuthStore } from '@/stores/auth'
 import ButtonYellow from '@/components/buttons/ButtonYellow.vue'
+import ErrorForm from '@/components/ErrorForm.vue'
 
 const errorModal = ref<InstanceType<typeof ModalError> | null>(null)
 

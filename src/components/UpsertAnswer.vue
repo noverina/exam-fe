@@ -17,8 +17,8 @@
           class="p-1 cursor-pointer material-symbols-outlined cursor-pointer rounded-full bg-white small-icon w-5 h-5 border transition-colors duration-300"
           :class="
             selected == indexChar || (!answer.isNew && answer.isCorrect)
-              ? 'text-green-600 border-green-800 hover:text-green-900 hover:border-green-900 hover:bg-green-100'
-              : 'text-red-600 border-red-800 hover:text-red-900 hover:border-red-900 hover:bg-red-100'
+              ? 'text-green-500 border-green-500 hover:text-green-900 hover:border-green-700'
+              : 'text-red-500 border-red-500 hover:text-red-900 hover:border-red-700'
           "
         >
           <div title="mark as correct">
@@ -28,24 +28,20 @@
         <div
           title="delete"
           @click="onDelete"
-          class="p-1 cursor-pointer material-symbols-outlined cursor-pointer rounded-full bg-white text-red-600 small-icon w-5 h-5"
+          class="p-1 cursor-pointer material-symbols-outlined cursor-pointer rounded-full bg-white text-red-500 small-icon w-5 h-5 hover:text-red-700 transition-colors duration-300"
         >
           <div>delete</div>
         </div>
       </div>
     </div>
-    <Transition name="fade">
-      <div
-        v-if="errors.get('answer-text-' + answer.answerId)"
-        class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-      >
-        {{ errors.get('answer-text-' + answer.answerId) }}
-      </div>
-    </Transition>
+    <ErrorForm :show-condition="errors.get(`answer-text-${answer.answerId}`)">
+      {{ errors.get(`answer-text-${answer.answerId}`) }}</ErrorForm
+    >
   </div>
 </template>
 <script setup lang="ts">
 import type { FormUpsertAnswer } from '@/types/formTypes'
+import ErrorForm from '@/components/ErrorForm.vue'
 import { computed } from 'vue'
 
 interface Props {
