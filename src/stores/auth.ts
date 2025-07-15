@@ -41,7 +41,6 @@ export const useAuthStore = defineStore('auth', {
     },
     async refresh(fetchFn: typeof window.fetch = window.fetch) {
       try {
-        console.log('refresh ')
         const response = (await refreshToken(fetchFn)) as HttpResponse<string>
         this.accessToken = response.data
         await this.getExpiry(response.data)
@@ -65,7 +64,6 @@ export const useAuthStore = defineStore('auth', {
     },
     async ensureToken(fetchFn: typeof window.fetch = window.fetch) {
       try {
-        console.log('ensuring token')
         if (!this.accessToken || this.tokenExpiry - Math.floor(Date.now() / 1000) < 60)
           await this.refresh(fetchFn)
       } catch (err) {

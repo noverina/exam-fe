@@ -119,7 +119,6 @@ onMounted(async () => {
     const res = (await (
       await fetch(`exam/grade/data?examId=${examId}&courseTeacherId=${courseTeacherId}`)
     ).json()) as unknown as HttpResponse<Grade | string>
-    console.log('res', res)
     data.value = res.data as Grade
   } catch (err) {
     if (err instanceof Error) handleError(err, errorModal, statusCode)
@@ -151,7 +150,6 @@ const filteredStudents = computed(() => {
 })
 
 const toExamView = (studentId: string) => {
-  console.log(studentId)
   router.push({
     name: 'ExamView',
     params: { id: data.value.examId },
