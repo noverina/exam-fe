@@ -28,7 +28,8 @@
             </div>
             <div v-else class="flex gap-2 items-center">
               <div>Grade:</div>
-              <div>{{ examData.grade ? examData.grade : 'Pending' }}</div>
+              <div v-if="examData.isGraded && examData.grade">{{ examData.grade }}</div>
+              <div v-if="examData.isGraded && !examData.grade">0</div>
             </div>
           </div>
           <ExamQuestion
