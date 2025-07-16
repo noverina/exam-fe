@@ -4,7 +4,7 @@
     :class="{
       'bg-green-100': selectedAnswer == answer.answerId && answer.isCorrect == true,
       'bg-red-100': selectedAnswer == answer.answerId && answer.isCorrect == false,
-      'border-green-500 font-semibold': answer.answerId == correctAnswer,
+      'border-green-600 font-semibold': answer.answerId == correctAnswer,
     }"
   >
     <input

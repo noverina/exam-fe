@@ -26,6 +26,7 @@ export interface CourseExam {
 
 export interface ExamDetail {
   isFinal: boolean
+  isGraded: boolean
   examId: string
   examType: ExamType
   courseName: string

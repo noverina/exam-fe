@@ -52,8 +52,8 @@
                 class="flex gap-4 p-4 border rounded-sm cursor-pointer justify-between cursor-pointer transition-colors duration-300"
                 :class="
                   student.isPass
-                    ? 'border-emerald-400 hover:border-green-500'
-                    : 'border-red-400 hover:border-rose-500'
+                    ? 'border-emerald-500 hover:border-green-700'
+                    : 'border-rose-400 hover:border-red-700'
                 "
                 @click="toExamView(student.studentId)"
               >
