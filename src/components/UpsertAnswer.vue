@@ -6,7 +6,7 @@
         id="radio"
         :value="answer.text"
         type="text"
-        class="border-b px-2 flex-1"
+        class="border-b px-2 flex-1 focus:outline-1 focus:outline-gray-400"
         placeholder="Type here..."
         @input="onInput('text', $event)"
       />

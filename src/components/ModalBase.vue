@@ -7,7 +7,7 @@
       @click="isOutsideClosable && close()"
     >
       <div
-        class="bg-white rounded-md flex flex-col shadow-xl min-w-1/4 max-w-5/12 cursor-default"
+        class="bg-white rounded-md flex flex-col shadow-xl min-w-1/4 max-w-10/12 lg:max-w-5/12 cursor-default"
         @click.stop
       >
         <div
@@ -22,7 +22,7 @@
           </div>
           <div class="px-4 flex cursor-pointer" @click="close">
             <div
-              class="p-1 bg-white rounded-full material-symbols-outlined base-icon transform transition duration-200 hover:scale-120"
+              class="p-1 bg-white rounded-lg material-symbols-outlined base-icon transform transition duration-200 hover:scale-120"
             >
               close
             </div>

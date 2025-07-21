@@ -1,5 +1,5 @@
 <template>
-  <main class="cursor-auto text-sm text-gray-800 mt-5">
+  <main class="cursor-auto text-xs lg:text-sm text-gray-800 mt-5">
     <ModalError ref="errorModal" :text="errorText" :code="statusCode" />
     <div v-show="loading">
       <LoadingSpinner />
@@ -23,12 +23,12 @@
 
         <div class="flex justify-end py-4">
           <div
-            class="flex gap-4 border border-gray-400 px-4 py-2 rounded-md items-center justify-center"
+            class="flex gap-4 border border-gray-400 px-4 py-2 rounded-md items-center justify-end"
           >
             <label for="search">Search</label>
             <input
               type="text"
-              class="border-b border-gray-400 focus:outline-1 focus:outline-gray-400"
+              class="border-b border-gray-400 focus:outline-1 focus:outline-gray-400 w-20 lg:w-full"
               placeholder="type here..."
               v-model="searchTerm"
             />

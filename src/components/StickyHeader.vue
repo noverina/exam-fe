@@ -7,7 +7,7 @@
       <router-link to="/" class="material-symbols-outlined">home</router-link>
     </div>
     <div class="flex gap-4 justify-center items-center">
-      <div class="material-symbols-outlined base-icon">account_circle</div>
+      <div class="hidden! lg:block material-symbols-outlined base-icon">account_circle</div>
       <div>{{ authStore.user?.name }}</div>
       <ButtonBase
         class="text-xs flex justify-center items-center cursor-pointer px-4! py-1!"

@@ -1,5 +1,5 @@
 <template>
-  <main class="cursor-auto text-gray-800 text-sm">
+  <main class="cursor-auto text-gray-800 text-xs lg:text-sm">
     <ModalConfirmation ref="confirmModal" @confirm-action="submit" :text="confirmText" />
     <ModalSuccess ref="successModal" :on-close="onClose" />
     <ModalError ref="errorModal" :text="errorText" :code="statusCode" />
@@ -7,9 +7,9 @@
       <LoadingSpinner />
     </div>
     <div v-show="!loading">
-      <form novalidate @submit.prevent="onSubmit" class="flex z-10">
+      <form novalidate @submit.prevent="onSubmit" class="flex flex-col lg:flex-row z-10">
         <div
-          class="flex gap-4 overflow-auto bg-white sticky top-12 left-0 h-[calc(100vh-3.5rem)]"
+          class="flex gap-4 overflow-auto bg-white sticky top-12 left-0 h-full lg:h-[calc(100vh-3.5rem)]"
           :class="isSidebarVisible ? 'p-4' : 'px-3 py-4'"
         >
           <Transition name="slide">
@@ -20,13 +20,13 @@
               <div class="flex flex-col gap-4">
                 <div class="font-semibold text-lg">{{ form.isNew ? 'Create' : 'Update' }} exam</div>
                 <div class="flex items-center gap-2">
-                  <label for="type" class="w-40 rounded-full border border-gray-400 px-4 py-2"
+                  <label for="type" class="w-40 rounded-lg border border-gray-400 px-4 py-2"
                     >Type</label
                   >
                   <select
                     id="type"
                     v-model="form.type"
-                    class="border-b px-2 w-50 flex-1 focus:outline-1"
+                    class="border-b px-2 w-50 flex-1 focus:outline-none focus:ring-0 focus:shadow-none"
                   >
                     <option
                       v-for="option in examTypeOptions"
@@ -38,7 +38,7 @@
                   </select>
                 </div>
                 <div class="flex items-center gap-2">
-                  <label for="start-date" class="w-40 rounded-full border border-gray-400 px-4 py-2"
+                  <label for="start-date" class="w-40 rounded-lg border border-gray-400 px-4 py-2"
                     >Start date</label
                   >
 
@@ -60,7 +60,7 @@
                   {{ errors.get('start-date') }}</ErrorForm
                 >
                 <div class="flex items-center gap-2">
-                  <label for="end-date" class="w-40 rounded-full border border-gray-400 px-4 py-2"
+                  <label for="end-date" class="w-40 rounded-lg border border-gray-400 px-4 py-2"
                     >End date</label
                   >
                   <VueDatePicker
@@ -81,7 +81,7 @@
                   {{ errors.get('end-date') }}</ErrorForm
                 >
                 <div class="flex items-center gap-2">
-                  <label for="passing" class="w-40 rounded-full border border-gray-400 px-4 py-2"
+                  <label for="passing" class="w-40 rounded-lg border border-gray-400 px-4 py-2"
                     >Passing grade</label
                   >
                   <input
@@ -89,14 +89,14 @@
                     max="100"
                     min="0"
                     v-model.number="form.passingGrade"
-                    class="border-b flex flex-1 px-4 focus:outline-1"
+                    class="border-b flex flex-1 px-4 focus:outline-1 focus:outline-gray-400"
                   />
                 </div>
                 <ErrorForm :show-condition="errors.get('passing-grade')">
                   {{ errors.get('passing-grade') }}</ErrorForm
                 >
                 <div
-                  class="flex border border-gray-400 rounded-full w-full px-4 py-2 justify-between"
+                  class="flex border border-gray-400 rounded-lg w-full px-4 py-2 justify-between"
                 >
                   <div>
                     <div>Add new question</div>
@@ -113,9 +113,8 @@
                 <ErrorForm :show-condition="errors.get('create-question')">
                   {{ errors.get('create-question') }}</ErrorForm
                 >
-
                 <div
-                  class="flex border border-gray-400 rounded-full w-full px-4 py-2 justify-between"
+                  class="border border-gray-400 rounded-lg w-full px-4 py-2 justify-between hidden lg:flex"
                 >
                   <div>
                     <div>Jump to question no.</div>
@@ -123,7 +122,7 @@
                   <div class="flex items-center gap-2">
                     <input
                       type="number"
-                      class="bg-white rounded-full w-20 px-4 border border-gray-400 focus:outline-1 focus:outline-gray-400"
+                      class="bg-white rounded-lg w-20 px-4 border border-gray-400 focus:outline-1 focus:outline-gray-400"
                       placeholder="0"
                       v-model.number="jumpInput"
                     />
@@ -156,7 +155,7 @@
           <ButtonYellow
             @click="isSidebarVisible = !isSidebarVisible"
             :is-border="false"
-            class="p-1! border-none!"
+            class="p-1! border-none! hidden lg:block"
             type="button"
           >
             <div class="material-symbols-outlined">
@@ -164,8 +163,10 @@
             </div>
           </ButtonYellow>
         </div>
-        <div class="flex-1 flex gap-4 p-6 rounded-md">
-          <div class="flex flex-col p-6 items-start w-full bg-white">
+        <div class="flex-1 flex gap-4 p-3 lg:p-6 h-full">
+          <div
+            class="flex flex-col p-3 lg:p-6 items-start w-full bg-white rounded-lg lg:rounded-md"
+          >
             <div
               v-if="errors.get('questions')"
               class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
