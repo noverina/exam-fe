@@ -1,50 +1,53 @@
 <template>
   <div
-    class="flex flex-col gap-4 rounded-md p-4 border border-gray-400 bg-white"
+    class="flex flex-col gap-4 rounded-md p-2 lg:p-4 border border-gray-400 bg-white"
     :id="`upsert-question-${index}`"
   >
-    <div class="w-full border-b border-gray-400 px-4 py-2 flex justify-between">
+    <div class="w-full border-b border-gray-400 px-4 py-2 flex justify-between items-center">
       <div>
         No. <span>{{ index + 1 }}</span>
       </div>
       <div class="flex items-center gap-2">
-        <div
-          class="flex rounded-full px-4 bg-white text-red-600 border border-red-800 items-center gap-1 cursor-pointer transition-colors duration-300 hover:text-red-800 hover:bg-red-100 hover:border-red-900"
+        <ButtonRed
+          class="flex items-center justify-center gap-2 p-1! lg:px-4! text-rose-500 hover:text-red-600"
           @click="deleteQuestion(question.questionId)"
+          :is-border="true"
         >
           <div>Delete</div>
           <span class="material-symbols-outlined small-icon"> delete </span>
-        </div>
+        </ButtonRed>
       </div>
     </div>
     <div class="flex items-center gap-4">
-      <label for="text" class="w-40 rounded-full border border-gray-400 px-4 py-2">Question</label>
+      <label
+        for="text"
+        class="w-20 lg:w-40 rounded-lg border border-gray-400 px-2 lg:px-4 py-1 lg:py-2"
+        >Question</label
+      >
       <input
         id="text"
         :value="question.text"
         :errors="errors"
         @input="onInput('text', $event)"
         type="text"
-        class="border-b px-2 flex-1"
+        class="border-b px-2 flex-1 focus:outline-1 focus:outline-gray-400"
         placeholder="Type here..."
         required
       />
     </div>
-    <Transition name="fade">
-      <div
-        v-if="errors.get('question-text-' + question.questionId)"
-        class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-      >
-        {{ errors.get('question-text-' + question.questionId) }}
-      </div>
-    </Transition>
+
+    <ErrorForm :show-condition="errors.get(`question-text-${question.questionId}`)">
+      {{ errors.get(`question-text-${question.questionId}`) }}</ErrorForm
+    >
     <div class="flex items-start gap-4">
-      <div class="flex justify-between w-40 rounded-full border border-gray-400 px-4 py-2">
+      <div
+        class="flex justify-between w-30 lg:w-40 rounded-lg border border-gray-400 px-2 lg:px-4 py-1 lg:py-2"
+      >
         <div>Answer</div>
         <div class="flex justify-center items-center" @click="createAnswer">
           <div
             title="create new answer"
-            class="p-1 rounded-full material-symbols-outlined cursor-pointer border border-gray-500 small-icon hover:text-black hover:border-gray-800 hover:bg-gray-100 transition-colors duration-300"
+            class="w-4 h-4 p-1 xs-icon rounded-full material-symbols-outlined cursor-pointer border border-gray-500 hover:text-black hover:border-gray-800 transition-colors duration-300"
           >
             add
           </div>
@@ -52,22 +55,12 @@
       </div>
 
       <div class="flex flex-col flex-1 gap-4">
-        <Transition name="fade">
-          <div
-            v-if="createError.get('create-answer')"
-            class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-          >
-            {{ createError.get('create-answer') }}
-          </div>
-        </Transition>
-        <Transition name="fade">
-          <div
-            v-if="errors.get('answers')"
-            class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-          >
-            {{ errors.get('answers') }}
-          </div>
-        </Transition>
+        <ErrorForm :show-condition="createError.get('create-answer')">
+          {{ createError.get('create-answer') }}</ErrorForm
+        >
+        <ErrorForm :show-condition="errors.get(`question-answer-${question.questionId}`)">
+          {{ errors.get(`question-answer-${question.questionId}`) }}</ErrorForm
+        >
         <TransitionGroup
           v-if="question.answers.length > 0"
           name="fade"
@@ -93,6 +86,8 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import UpsertAnswer from '@/components/UpsertAnswer.vue'
 import type { FormUpsertQuestion } from '@/types/formTypes'
+import ButtonRed from './buttons/ButtonRed.vue'
+import ErrorForm from '@/components/ErrorForm.vue'
 
 interface Props {
   index: number

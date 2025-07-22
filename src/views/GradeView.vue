@@ -1,5 +1,5 @@
 <template>
-  <main class="cursor-auto text-sm text-gray-800 mt-5">
+  <main class="cursor-auto text-xs lg:text-sm text-gray-800 mt-5">
     <ModalError ref="errorModal" :text="errorText" :code="statusCode" />
     <div v-show="loading">
       <LoadingSpinner />
@@ -23,12 +23,12 @@
 
         <div class="flex justify-end py-4">
           <div
-            class="flex gap-4 border border-gray-400 px-4 py-2 rounded-md items-center justify-center"
+            class="flex gap-4 border border-gray-400 px-4 py-2 rounded-md items-center justify-end"
           >
             <label for="search">Search</label>
             <input
               type="text"
-              class="border-b border-gray-400 focus:outline-1 focus:outline-gray-400"
+              class="border-b border-gray-400 focus:outline-1 focus:outline-gray-400 w-20 lg:w-full"
               placeholder="type here..."
               v-model="searchTerm"
             />
@@ -52,8 +52,8 @@
                 class="flex gap-4 p-4 border rounded-sm cursor-pointer justify-between cursor-pointer transition-colors duration-300"
                 :class="
                   student.isPass
-                    ? 'border-emerald-400 hover:border-green-500'
-                    : 'border-red-400 hover:border-rose-500'
+                    ? 'border-emerald-500 hover:border-green-700'
+                    : 'border-rose-400 hover:border-red-700'
                 "
                 @click="toExamView(student.studentId)"
               >

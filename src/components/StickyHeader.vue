@@ -6,29 +6,21 @@
     <div class="flex gap-4">
       <router-link to="/" class="material-symbols-outlined">home</router-link>
     </div>
-    <div class="flex gap-4 cursor-pointer" @click="isVisible = !isVisible">
-      <div class="material-symbols-outlined">account_circle</div>
+    <div class="flex gap-4 justify-center items-center">
+      <div class="hidden! lg:block material-symbols-outlined base-icon">account_circle</div>
       <div>{{ authStore.user?.name }}</div>
+      <ButtonBase
+        class="text-xs flex justify-center items-center cursor-pointer px-4! py-1!"
+        @click="authStore.logout(originalFetch)"
+        >Logout</ButtonBase
+      >
     </div>
   </nav>
-  <Transition name="slide">
-    <div v-if="isVisible" class="fixed right-2 top-12 z-99">
-      <ButtonYellow
-        @click="authStore.logout(originalFetch)"
-        :is-border="false"
-        class="text-sm w-50 font-semibold"
-      >
-        Logout
-      </ButtonYellow>
-    </div>
-  </Transition>
 </template>
 
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
-import { ref } from 'vue'
 import { originalFetch } from '@/main'
-import ButtonYellow from './buttons/ButtonYellow.vue'
+import ButtonBase from './buttons/ButtonBase.vue'
 const authStore = useAuthStore()
-const isVisible = ref(false)
 </script>

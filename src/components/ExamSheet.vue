@@ -1,11 +1,11 @@
 <template>
   <div
     class="h-[calc(100vh-3rem)] sticky top-12 bg-white z-52"
-    :class="isContentVisible ? 'p-4' : 'px-3 py-4'"
+    :class="isContentVisible ? 'p-1 lg:p-4' : 'p-1 lg:px-3 lg:py-4'"
   >
     <div class="flex h-full gap-2">
       <ButtonYellow
-        class="material-symbols-outlined p-1! border-none!"
+        class="material-symbols-outlined p-1! border-none! w-5! lg:w-8! text-xs! lg:text-base!"
         @click="isContentVisible = !isContentVisible"
         :is-border="false"
       >
@@ -19,7 +19,7 @@
                 v-if="answeredQuestions.get(question.questionId)"
                 @click="scrollToQuestion(question.questionId)"
                 :is-border="false"
-                class="w-8 h-8 flex items-center justify-center"
+                class="h-4 h-4 lg:w-8 text-xs lg:h-8 flex items-center justify-center"
                 >{{ index + 1 }}</ButtonGreen
               >
               <ButtonRed

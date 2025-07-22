@@ -9,14 +9,14 @@
     <div v-show="!loading">
       <div
         v-if="saving"
-        class="fixed inset right-5 bottom-5 py-2 px-8 shadow border border-gray-200 bg-white rounded-full saving z-41 opacity-80"
+        class="fixed inset right-5 bottom-5 py-2 px-8 shadow border border-gray-200 bg-white rounded-lg saving z-41 opacity-80"
       >
         saving
       </div>
       <div v-if="examData && examData.questions.length > 0" class="flex">
         <div class="flex-1 m-5 bg-white p-6 rounded-md">
           <div
-            class="flex justify-between px-4 py-2 sticky top-12 h-10 bg-white w-full font-semibold"
+            class="flex flex-col lg:flex-row lg:justify-between px-4 py-2 sticky top-12 h-10 bg-white w-full font-semibold h-fit"
           >
             <div>{{ examData.courseName }} - {{ examData.examType }}</div>
             <div v-if="remainingTime.seconds > 0" class="flex gap-2 items-center">
@@ -28,7 +28,8 @@
             </div>
             <div v-else class="flex gap-2 items-center">
               <div>Grade:</div>
-              <div>{{ examData.grade ? examData.grade : 'Pending' }}</div>
+              <div v-if="examData.isGraded && examData.grade">{{ examData.grade }}</div>
+              <div v-if="examData.isGraded && !examData.grade">0</div>
             </div>
           </div>
           <ExamQuestion

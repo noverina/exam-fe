@@ -1,32 +1,25 @@
 <template>
-  <div class="flex justify-center items-center h-screen w-full text-sm text-gray-800">
+  <div class="flex justify-center items-center h-screen w-full text-xs lg:text-sm text-gray-800">
     <ModalError ref="errorModal" :text="errorText" :code="statusCode" />
     <div v-show="loading">
       <LoadingSpinner />
     </div>
     <div
       v-show="!loading"
-      class="border border-gray-300 rounded-sm overflow-auto bg-white p-10 w-4/12 gap-10"
+      class="border border-gray-300 rounded-sm overflow-auto bg-white p-10 w-10/12 lg:w-4/12 gap-10"
     >
-      <form @submit.prevent="login" class="flex flex-col gap-6">
+      <form @submit.prevent="login" class="flex flex-col gap-6" novalidate>
         <div class="text-lg font-semibold">Portofolio - Exam App</div>
         <div class="flex flex-col gap-2 w-full">
           <label for="email">E-mail</label>
           <input
             type="email"
             name="email"
-            class="border border-gray-400 rounded-sm px-2 py-1"
+            class="border border-gray-400 rounded-sm px-2 py-1 focus:outline-1 focus:outline-gray-400"
             placeholder="Type here..."
             v-model="form.email"
           />
-          <Transition name="fade">
-            <div
-              v-if="errors.get('email')"
-              class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-            >
-              {{ errors.get('email') }}
-            </div>
-          </Transition>
+          <ErrorForm :show-condition="errors.get('email')"> {{ errors.get('email') }}</ErrorForm>
         </div>
 
         <div class="flex flex-col gap-2 w-full">
@@ -34,18 +27,13 @@
           <input
             type="password"
             name="password"
-            class="border border-gray-400 rounded-sm px-2 py-1"
+            class="border border-gray-400 rounded-sm px-2 py-1 focus:outline-1 focus:outline-gray-400"
             placeholder="Type here..."
             v-model="form.password"
           />
-          <Transition name="fade">
-            <div
-              v-if="errors.get('password')"
-              class="flex border border-red-800 text-red-600 rounded-md px-4 py-2"
-            >
-              {{ errors.get('password') }}
-            </div>
-          </Transition>
+          <ErrorForm :show-condition="errors.get('password')">
+            {{ errors.get('password') }}</ErrorForm
+          >
         </div>
         <div class="flex flex-col gap-4 w-full">
           <ButtonYellow type="submit" :is-border="false">Login</ButtonYellow>
@@ -65,6 +53,7 @@ import { useRouter } from 'vue-router'
 import { originalFetch } from '@/main'
 import { useAuthStore } from '@/stores/auth'
 import ButtonYellow from '@/components/buttons/ButtonYellow.vue'
+import ErrorForm from '@/components/ErrorForm.vue'
 
 const errorModal = ref<InstanceType<typeof ModalError> | null>(null)
 

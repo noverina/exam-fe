@@ -7,7 +7,7 @@
     :is-outside-closable="false"
   >
     <div class="flex flex-col justify-center gap-4 w-full items-center">
-      <div class="flex items-center justify-center bg-red-300 w-10 h-10 rounded-full">
+      <div class="flex items-center justify-center bg-red-300 w-10 h-10 rounded-lg">
         <span class="material-symbols-outlined">exclamation</span>
       </div>
 

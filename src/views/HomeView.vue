@@ -1,5 +1,5 @@
 <template>
-  <main class="cursor-auto text-gray-800 text-sm">
+  <main class="cursor-auto text-gray-800 text-xs lg:text-sm">
     <ModalError ref="errorModal" :text="errorText" :code="statusCode" />
     <ModalConfirmation ref="confirmModal" @confirm-action="grade" :text="confirmText" />
     <ModalSuccess ref="successModal" :on-close="populate" />
@@ -10,9 +10,9 @@
       <div v-if="data.length > 0" class="flex flex-col gap-4 m-5 p-4 rounded-md bg-white">
         <div class="flex justify-end gap-4">
           <div class="flex gap-4 items-center">
-            <label>Show</label>
+            <label class="">Show</label>
             <select
-              class="focus:outline-none focus:ring-0 focus:shadow-none border border-gray-400 rounded-sm px-2 py-1"
+              class="text-xs lg:text-sm focus:outline-none focus:ring-0 focus:shadow-none border border-gray-400 rounded-sm px-2 py-1"
               v-model="statusFilter"
             >
               <option value="all">All</option>
@@ -30,7 +30,7 @@
             </select>
           </div>
 
-          <ButtonBase @click="toggleAll">
+          <ButtonBase @click="toggleAll" class="text-xs lg:text-sm">
             {{ anyExpanded ? 'Collapse All' : 'Expand All' }}
           </ButtonBase>
         </div>
